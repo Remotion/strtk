@@ -22,6 +22,7 @@ All updates  and the most recent version of the C++ String Toolkit can
 be found at:
 (1) http://www.partow.net/programming/strtk/index.html
 (2) http://strtk.partow.net
+(3) http://www.codeproject.com/Articles/23198/C-String-Toolkit-StrTk-Tokenizer
 
 Code repository:
 (1) http://code.google.com/p/strtk/
