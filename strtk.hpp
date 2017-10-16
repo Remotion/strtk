@@ -2,14 +2,14 @@
  *****************************************************************
  *                     String Toolkit Library                    *
  *                                                               *
- * Author: Arash Partow (2002-2014)                              *
+ * Author: Arash Partow (2002-2017)                              *
  * URL: http://www.partow.net/programming/strtk/index.html       *
  *                                                               *
  * Copyright notice:                                             *
  * Free use of the String Toolkit Library is permitted under the *
  * guidelines and in accordance with the most current version of *
- * the Common Public License.                                    *
- * http://www.opensource.org/licenses/cpl1.0.php                 *
+ * the MIT License.                                              *
+ * http://www.opensource.org/licenses/MIT                        *
  *                                                               *
  *****************************************************************
 */
@@ -340,9 +340,19 @@ namespace strtk
       #undef register_stl_container2
 
       template <typename T>
-      void convert_type_assert(){}
+      inline void convert_type_assert(){}
 
    } // namespace details
+
+   inline const std::string::value_type* to_ptr(const std::string& s)
+   {
+      return &s[0];
+   }
+
+   inline std::string::value_type* to_ptr(std::string& s)
+   {
+      return &s[0];
+   }
 
    template <typename Iterator, typename T>
    inline bool string_to_type_converter(const Iterator begin, const Iterator end, T& t)
@@ -384,13 +394,13 @@ namespace strtk
    template <typename T>
    inline bool string_to_type_converter(const std::string& s, T& t)
    {
-      return string_to_type_converter<const char*,T>(s.data(),s.data() + s.size(),t);
+      return string_to_type_converter<const char*,T>(to_ptr(s), to_ptr(s) + s.size(), t);
    }
 
    template <typename T>
    inline T string_to_type_converter(const std::string& s)
    {
-      return string_to_type_converter<T>(s.data(),s.data() + s.size());
+      return string_to_type_converter<T>(to_ptr(s), to_ptr(s) + s.size());
    }
 
    template <typename T>
@@ -965,7 +975,7 @@ namespace strtk
 
       static inline adapter<const char> type(const std::string& s)
       {
-         return adapter<const char>(s.data(),s.size());
+         return adapter<const char>(to_ptr(s), s.size());
       }
 
       template <typename T,
@@ -1090,7 +1100,7 @@ namespace strtk
 
       multiple_char_delimiter_predicate(const std::string& s)
       {
-         setup_delimiter_table(s.data(),s.data() + s.size());
+         setup_delimiter_table(to_ptr(s), to_ptr(s) + s.size());
       }
 
       inline bool operator()(const unsigned char& c) const
@@ -1216,8 +1226,8 @@ namespace strtk
    inline void remove_inplace(const std::string::value_type c, std::string& s)
    {
       const std::size_t removal_count = remove_inplace(single_delimiter_predicate<std::string::value_type>(c),
-                                                       const_cast<char*>(s.data()),
-                                                       const_cast<char*>(s.data() + s.size()));
+                                                       const_cast<char*>(to_ptr(s)),
+                                                       const_cast<char*>(to_ptr(s) + s.size()));
       if (removal_count > 0)
       {
          s.resize(s.size() - removal_count);
@@ -1228,8 +1238,8 @@ namespace strtk
    inline void remove_inplace(Predicate predicate, std::string& s)
    {
       const std::size_t removal_count = remove_inplace(predicate,
-                                                       const_cast<char*>(s.data()),
-                                                       const_cast<char*>(s.data() + s.size()));
+                                                       const_cast<char*>(to_ptr(s)),
+                                                       const_cast<char*>(to_ptr(s) + s.size()));
       if (removal_count > 0)
       {
          s.resize(s.size() - removal_count);
@@ -1281,8 +1291,8 @@ namespace strtk
    {
       if (s.empty()) return;
       const std::size_t removal_count = remove_consecutives_inplace(single_delimiter_predicate<std::string::value_type>(c),
-                                                                    const_cast<char*>(s.data()),
-                                                                    const_cast<char*>(s.data() + s.size()));
+                                                                    const_cast<char*>(to_ptr(s)),
+                                                                    const_cast<char*>(to_ptr(s) + s.size()));
       if (removal_count > 0)
       {
          s.resize(s.size() - removal_count);
@@ -1293,8 +1303,8 @@ namespace strtk
    {
       if (s.empty()) return;
       const std::size_t removal_count = remove_consecutives_inplace(multiple_char_delimiter_predicate(rem_chars),
-                                                                    const_cast<char*>(s.data()),
-                                                                    const_cast<char*>(s.data() + s.size()));
+                                                                    const_cast<char*>(to_ptr(s)),
+                                                                    const_cast<char*>(to_ptr(s) + s.size()));
       if (removal_count > 0)
       {
          s.resize(s.size() - removal_count);
@@ -1326,8 +1336,8 @@ namespace strtk
       const std::size_t removal_count = remove_consecutives_inplace(multiple_char_delimiter_predicate(
                                                                     rem_chars,
                                                                     rem_chars + details::strnlength(rem_chars,256)),
-                                                                    const_cast<char*>(s.data()),
-                                                                    const_cast<char*>(s.data() + s.size()));
+                                                                    const_cast<char*>(to_ptr(s)),
+                                                                    const_cast<char*>(to_ptr(s) + s.size()));
       if (removal_count > 0)
       {
          s.resize(s.size() - removal_count);
@@ -1339,8 +1349,8 @@ namespace strtk
    {
       if (s.empty()) return;
       const std::size_t removal_count = remove_consecutives_inplace(predicate,
-                                                                    const_cast<char*>(s.data()),
-                                                                    const_cast<char*>(s.data() + s.size()));
+                                                                    const_cast<char*>(to_ptr(s)),
+                                                                    const_cast<char*>(to_ptr(s) + s.size()));
       if (removal_count > 0)
       {
          s.resize(s.size() - removal_count);
@@ -1397,8 +1407,8 @@ namespace strtk
 
    inline void remove_consecutives_inplace(std::string& s)
    {
-      std::size_t removal_count = remove_consecutives_inplace(const_cast<char*>(s.data()),
-                                                              const_cast<char*>(s.data() + s.size()));
+      std::size_t removal_count = remove_consecutives_inplace(const_cast<char*>(to_ptr(s)),
+                                                              const_cast<char*>(to_ptr(s) + s.size()));
 
       if (removal_count > 0)
       {
@@ -1460,8 +1470,8 @@ namespace strtk
    {
       if (s.empty()) return;
       const std::size_t removal_count = remove_trailing(single_delimiter_predicate<std::string::value_type>(c),
-                                                        const_cast<char*>(s.data()),
-                                                        const_cast<char*>(s.data() + s.size()));
+                                                        const_cast<char*>(to_ptr(s)),
+                                                        const_cast<char*>(to_ptr(s) + s.size()));
       if (removal_count > 0)
       {
          s.resize(s.size() - removal_count);
@@ -1472,8 +1482,8 @@ namespace strtk
    {
       if (s.empty()) return;
       const std::size_t removal_count = remove_trailing(multiple_char_delimiter_predicate(rem_chars),
-                                                        const_cast<char*>(s.data()),
-                                                        const_cast<char*>(s.data() + s.size()));
+                                                        const_cast<char*>(to_ptr(s)),
+                                                        const_cast<char*>(to_ptr(s) + s.size()));
       if (removal_count > 0)
       {
          s.resize(s.size() - removal_count);
@@ -1485,8 +1495,8 @@ namespace strtk
       const std::size_t removal_count = remove_trailing(multiple_char_delimiter_predicate(
                                                         rem_chars,
                                                         rem_chars + details::strnlength(rem_chars,256)),
-                                                        const_cast<char*>(s.data()),
-                                                        const_cast<char*>(s.data() + s.size()));
+                                                        const_cast<char*>(to_ptr(s)),
+                                                        const_cast<char*>(to_ptr(s) + s.size()));
       if (removal_count > 0)
       {
          s.resize(s.size() - removal_count);
@@ -1498,8 +1508,8 @@ namespace strtk
    {
       if (s.empty()) return;
       const std::size_t removal_count = remove_trailing(predicate,
-                                                        const_cast<char*>(s.data()),
-                                                        const_cast<char*>(s.data() + s.size()));
+                                                        const_cast<char*>(to_ptr(s)),
+                                                        const_cast<char*>(to_ptr(s) + s.size()));
       if (removal_count > 0)
       {
          s.resize(s.size() - removal_count);
@@ -1538,8 +1548,8 @@ namespace strtk
    {
       if (s.empty()) return;
       const std::size_t removal_count = remove_leading(single_delimiter_predicate<std::string::value_type>(c),
-                                                       const_cast<char*>(s.data()),
-                                                       const_cast<char*>(s.data() + s.size()));
+                                                       const_cast<char*>(to_ptr(s)),
+                                                       const_cast<char*>(to_ptr(s) + s.size()));
       if (removal_count > 0)
       {
          s.resize(s.size() - removal_count);
@@ -1550,8 +1560,8 @@ namespace strtk
    {
       if (s.empty()) return;
       const std::size_t removal_count = remove_leading(multiple_char_delimiter_predicate(rem_chars),
-                                                       const_cast<char*>(s.data()),
-                                                       const_cast<char*>(s.data() + s.size()));
+                                                       const_cast<char*>(to_ptr(s)),
+                                                       const_cast<char*>(to_ptr(s) + s.size()));
       if (removal_count > 0)
       {
          s.resize(s.size() - removal_count);
@@ -1564,8 +1574,8 @@ namespace strtk
       const std::size_t removal_count = remove_leading(multiple_char_delimiter_predicate(
                                                        rem_chars,
                                                        rem_chars + details::strnlength(rem_chars,256)),
-                                                       const_cast<char*>(s.data()),
-                                                       const_cast<char*>(s.data() + s.size()));
+                                                       const_cast<char*>(to_ptr(s)),
+                                                       const_cast<char*>(to_ptr(s) + s.size()));
       if (removal_count > 0)
       {
          s.resize(s.size() - removal_count);
@@ -1583,8 +1593,8 @@ namespace strtk
    {
       if (s.empty()) return;
       const std::size_t removal_count = remove_leading(predicate,
-                                                       const_cast<char*>(s.data()),
-                                                       const_cast<char*>(s.data() + s.size()));
+                                                       const_cast<char*>(to_ptr(s)),
+                                                       const_cast<char*>(to_ptr(s) + s.size()));
       if (removal_count > 0)
       {
          s.resize(s.size() - removal_count);
@@ -1657,13 +1667,15 @@ namespace strtk
                        const std::string::value_type& c1,
                        std::string& s)
    {
-      replace(c0,c1,const_cast<char*>(s.data()),const_cast<char*>(s.data() + s.size()));
+      replace(c0, c1,
+              const_cast<char*>(to_ptr(s)),
+              const_cast<char*>(to_ptr(s) + s.size()));
    }
 
    template <typename T>
    inline void replace(const T& c1, const T& c2, const range::adapter<T>& r)
    {
-      replace(c1,c2,r.begin(),r.end());
+      replace(c1, c2, r.begin(), r.end());
    }
 
    inline void replace_pattern(const std::string& s, // input
@@ -1679,8 +1691,11 @@ namespace strtk
 
       const std::size_t p_size = p.size();
       const std::size_t r_size = r.size();
+
       int inc = static_cast<int>(r_size) - static_cast<int>(p_size);
+
       std::size_t pos = 0;
+
       std::vector<std::size_t> delta_list;
       delta_list.reserve(std::min<std::size_t>(32,(s.size() / p_size) + 1));
 
@@ -1697,12 +1712,16 @@ namespace strtk
       }
 
       n.resize(delta_list.size() * inc + s.size(), 0x00);
-      char* n_itr = const_cast<char*>(n.data());
-      const char* s_end = s.data() + s.size();
-      const char* s_itr = s.data();
-      const char* r_begin = r.data();
-      const char* r_end = r.data() + r_size;
+
+      char* n_itr = const_cast<char*>(to_ptr(n));
+
+      const char* s_end   = to_ptr(s) + s.size();
+      const char* s_itr   = to_ptr(s);
+      const char* r_begin = to_ptr(r);
+      const char* r_end   = to_ptr(r) + r_size;
+
       const std::size_t delta_list_size = delta_list.size();
+
       std::size_t i = 0;
       std::size_t delta = delta_list[0];
 
@@ -1713,8 +1732,10 @@ namespace strtk
          n_itr += delta;
          std::copy(r_begin, r_end, n_itr);
          n_itr += r_size;
+
          if (++i >= delta_list_size)
             break;
+
          delta =  delta_list[i] - (delta_list[i - 1] + p_size);
       }
 
@@ -1725,9 +1746,9 @@ namespace strtk
    }
 
    template <typename InputIterator, typename OutputIterator>
-   inline std::size_t replace_pattern(const InputIterator s_begin, const InputIterator s_end, // input
-                                      const InputIterator p_begin, const InputIterator p_end, // pattern
-                                      const InputIterator r_begin, const InputIterator r_end, // replacement
+   inline std::size_t replace_pattern(const InputIterator s_begin, const InputIterator s_end, // Input
+                                      const InputIterator p_begin, const InputIterator p_end, // Pattern
+                                      const InputIterator r_begin, const InputIterator r_end, // Replacement
                                       OutputIterator out)
    {
       InputIterator s_itr  = s_begin;
@@ -1844,23 +1865,23 @@ namespace strtk
       std::sort(s.begin(),s.end());
    }
 
-   template <typename Iterator>
-   inline bool match(const Iterator pattern_begin,
-                     const Iterator pattern_end,
-                     const Iterator data_begin,
-                     const Iterator data_end,
-                     const typename std::iterator_traits<Iterator>::value_type& zero_or_more,
-                     const typename std::iterator_traits<Iterator>::value_type& zero_or_one)
+   template <typename Iterator1, typename Iterator2>
+   inline bool match(const Iterator1 pattern_begin,
+                     const Iterator1 pattern_end,
+                     const Iterator2 data_begin,
+                     const Iterator2 data_end,
+                     const typename std::iterator_traits<Iterator1>::value_type& zero_or_more,
+                     const typename std::iterator_traits<Iterator1>::value_type& zero_or_one)
    {
       /*
          Credits: Adapted from code by Jack Handy (2001)
       */
       if (0 == std::distance(data_begin,data_end)) return false;
 
-      Iterator d_itr = data_begin;
-      Iterator p_itr = pattern_begin;
-      Iterator c_itr = data_begin;
-      Iterator m_itr = data_begin;
+      Iterator2 d_itr = data_begin;
+      Iterator1 p_itr = pattern_begin;
+      Iterator2 c_itr = data_begin;
+      Iterator2 m_itr = data_begin;
 
       while ((data_end != d_itr) && (zero_or_more != (*p_itr)))
       {
@@ -1910,10 +1931,8 @@ namespace strtk
          * : Zero or more match
          ? : Zero or one match
       */
-      return match(wild_card.data(),
-                   wild_card.data() + wild_card.size(),
-                   str.data(),
-                   str.data() + str.size(),
+      return match(to_ptr(wild_card), to_ptr(wild_card) + wild_card.size(),
+                   to_ptr(str)      , to_ptr(str)       + str      .size(),
                    '*',
                    '?');
    }
@@ -1959,10 +1978,8 @@ namespace strtk
 
    inline bool imatch(const std::string& s1, const std::string& s2)
    {
-      return imatch(s1.data(),
-                    s1.data() + s1.size(),
-                    s2.data(),
-                    s2.data() + s2.size());
+      return imatch(to_ptr(s1), to_ptr(s1) + s1.size(),
+                    to_ptr(s2), to_ptr(s2) + s2.size());
    }
 
    template <typename Iterator>
@@ -2035,14 +2052,14 @@ namespace strtk
       if (pattern.size() > data.size())
          return std::string::npos;
 
-      const char* result_itr = std::search(data.data(),data.data() + data.size(),
-                                           pattern.data(), pattern.data() + pattern.size(),
+      const char* result_itr = std::search(to_ptr(data),    to_ptr(data)    + data   .size(),
+                                           to_ptr(pattern), to_ptr(pattern) + pattern.size(),
                                            imatch_char);
 
-      if ((data.data() + data.size()) == result_itr)
+      if ((to_ptr(data) + data.size()) == result_itr)
          return std::string::npos;
       else
-         return std::distance(data.data(),result_itr);
+         return std::distance(to_ptr(data),result_itr);
    }
 
    template <typename Iterator, typename OutputIterator>
@@ -2058,7 +2075,7 @@ namespace strtk
 
       while (end != (itr = std::search(itr, end, pattern_begin, pattern_end, imatch_char)))
       {
-         (*out) = std::make_pair(itr,itr + pattern_length);
+         (*out) = std::make_pair(itr, itr + pattern_length);
          itr += pattern_length;
          ++out;
          ++match_count;
@@ -2072,8 +2089,8 @@ namespace strtk
                                const std::string& data,
                                OutputIterator out)
    {
-      return find_all(pattern.data(), pattern.data() + pattern.size(),
-                      data.data(), data.data() + data.size(),
+      return find_all(to_ptr(pattern), to_ptr(pattern) + pattern.size(),
+                      to_ptr(data)   , to_ptr(data)    + data   .size(),
                       out);
    }
 
@@ -2092,8 +2109,8 @@ namespace strtk
                                 const std::string& data,
                                 OutputIterator out)
    {
-      return ifind_all(pattern.data(), pattern.data() + pattern.size(),
-                       data.data(), data.data() + data.size(),
+      return ifind_all(to_ptr(pattern), to_ptr(pattern) + pattern.size(),
+                       to_ptr(data)   , to_ptr(data)    + data   .size(),
                        out);
    }
 
@@ -2127,10 +2144,8 @@ namespace strtk
    {
       if (pattern.size() <= data.size())
       {
-         return begins_with(pattern.data(),
-                            pattern.data() + pattern.size(),
-                            data.data(),
-                            data.data() + data.size());
+         return begins_with(to_ptr(pattern), to_ptr(pattern) + pattern.size(),
+                            to_ptr(data)   , to_ptr(data)    + data   .size());
       }
       else
          return false;
@@ -2143,7 +2158,9 @@ namespace strtk
                             const InputIterator end)
    {
       typedef typename details::is_valid_iterator<InputIterator>::type itr_type;
+
       details::convert_type_assert<itr_type>();
+
       if (std::distance(pattern_begin,pattern_end) <= std::distance(begin,end))
       {
          return std::equal(pattern_begin,pattern_end,begin,imatch_char);
@@ -2156,10 +2173,8 @@ namespace strtk
    {
       if (pattern.size() <= data.size())
       {
-         return ibegins_with(pattern.data(),
-                             pattern.data() + pattern.size(),
-                             data.data(),
-                             data.data() + data.size());
+         return ibegins_with(to_ptr(pattern), to_ptr(pattern) + pattern.size(),
+                             to_ptr(data),    to_ptr(data)    + data   .size());
       }
       else
          return false;
@@ -2172,9 +2187,12 @@ namespace strtk
                          const InputIterator end)
    {
       typedef typename details::is_valid_iterator<InputIterator>::type itr_type;
+
       details::convert_type_assert<itr_type>();
-      const std::size_t pattern_length = std::distance(pattern_begin,pattern_end);
-      const std::size_t data_length = std::distance(begin,end);
+
+      const std::size_t pattern_length = std::distance(pattern_begin, pattern_end);
+      const std::size_t data_length    = std::distance(begin, end);
+
       if (pattern_length <= data_length)
       {
          return std::equal(pattern_begin,
@@ -2189,10 +2207,8 @@ namespace strtk
    {
       if (pattern.size() <= data.size())
       {
-         return ends_with(pattern.data(),
-                          pattern.data() + pattern.size(),
-                          data.data(),
-                          data.data() + data.size());
+         return ends_with(to_ptr(pattern), to_ptr(pattern) + pattern.size(),
+                          to_ptr(data)   , to_ptr(data)    + data   .size());
       }
       else
          return false;
@@ -2205,9 +2221,12 @@ namespace strtk
                           const InputIterator end)
    {
       typedef typename details::is_valid_iterator<InputIterator>::type itr_type;
+
       details::convert_type_assert<itr_type>();
+
       const std::size_t pattern_length = std::distance(pattern_begin,pattern_end);
       const std::size_t data_length = std::distance(begin,end);
+
       if (pattern_length <= data_length)
       {
          return std::equal(pattern_begin,
@@ -2223,10 +2242,8 @@ namespace strtk
    {
       if (pattern.size() <= data.size())
       {
-         return iends_with(pattern.data(),
-                           pattern.data() + pattern.size(),
-                           data.data(),
-                           data.data() + data.size());
+         return iends_with(to_ptr(pattern), to_ptr(pattern) + pattern.size(),
+                           to_ptr(data)   , to_ptr(data)    + data   .size());
       }
       else
          return false;
@@ -2241,12 +2258,13 @@ namespace strtk
       else if (pattern.size() > data.size())
          return std::string::npos;
 
-      const char* itr = std::search(data.data(),
-                                    data.data() + data.size(),
-                                    pattern.data(),
-                                    pattern.data() + pattern.size());
+      const char* itr = std::search(to_ptr(data)   , to_ptr(data)    + data   .size(),
+                                    to_ptr(pattern), to_ptr(pattern) + pattern.size());
 
-      return ((data.data() + data.size()) == itr) ? std::string::npos : std::distance(data.data(),itr);
+      if ((to_ptr(data) + data.size()) == itr)
+         return std::string::npos;
+      else
+         return std::distance(to_ptr(data),itr);
    }
 
    namespace tokenize_options
@@ -2472,8 +2490,8 @@ namespace strtk
                        const tokenize_options::type tokenize_options = tokenize_options::default_mode)
       : tokenize_options_(tokenize_options),
         predicate_(predicate),
-        begin_(s.data()),
-        end_(s.data() + s.size()),
+        begin_(to_ptr(s)),
+        end_(to_ptr(s) + s.size()),
         begin_itr_(begin_,end_,predicate_,tokenize_options_),
         end_itr_(end_,end_,predicate_,tokenize_options_)
       {}
@@ -2494,20 +2512,20 @@ namespace strtk
 
       inline void assign(const std::string& s) const
       {
-         assign(s.data(),s.data() + s.size());
+         assign(to_ptr(s), to_ptr(s) + s.size());
       }
 
       inline void assign(const std::string& s)
       {
-         assign(s.data(),s.data() + s.size());
+         assign(to_ptr(s), to_ptr(s) + s.size());
       }
 
       inline void assign(const Iterator begin, const Iterator end)
       {
-        begin_ = begin;
-        end_ = end;
-        begin_itr_ = iterator(begin_,end_,predicate_,tokenize_options_);
-        end_itr_ = iterator(end_,end_,predicate_,tokenize_options_);
+         begin_     = begin;
+         end_       = end;
+         begin_itr_ = iterator(begin_,end_,predicate_,tokenize_options_);
+         end_itr_   = iterator(end_  ,end_,predicate_,tokenize_options_);
       }
 
       inline const_iterator_ref begin() const
@@ -2595,7 +2613,7 @@ namespace strtk
       {
          value_type t;
 
-         if (string_to_type_converter(s.data(),s.data() + s.size(),t))
+         if (string_to_type_converter(to_ptr(s), to_ptr(s) + s.size(),t))
             sequence_.push_back(t);
 
          return (*this);
@@ -2605,6 +2623,7 @@ namespace strtk
       inline void operator()(const std::pair<Iterator,Iterator>& r) const
       {
          value_type t;
+
          if (string_to_type_converter(r.first,r.second,t))
             sequence_.push_back(t);
       }
@@ -3018,7 +3037,7 @@ namespace strtk
       {
          value_type t = value_type();
 
-         if (string_to_type_converter(s.data(),s.data() + s.size(),t))
+         if (string_to_type_converter(to_ptr(s), to_ptr(s) + s.size(),t))
          {
             (*pointer_) = t;
             ++pointer_;
@@ -3404,12 +3423,12 @@ namespace strtk
    {
       if (1 == details::strnlength(delimiters,256))
          return split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-                      str.data(), str.data() + str.size(),
+                      to_ptr(str), to_ptr(str) + str.size(),
                       out,
                       split_option);
       else
          return split(multiple_char_delimiter_predicate(delimiters),
-                      str.data(), str.data() + str.size(),
+                      to_ptr(str), to_ptr(str) + str.size(),
                       out,
                       split_option);
    }
@@ -3422,12 +3441,12 @@ namespace strtk
    {
       if (1 == delimiters.size())
          return split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-                      str.data(), str.data() + str.size(),
+                      to_ptr(str), to_ptr(str) + str.size(),
                       out,
                       split_option);
       else
          return split(multiple_char_delimiter_predicate(delimiters),
-                      str.data(), str.data() + str.size(),
+                      to_ptr(str), to_ptr(str) + str.size(),
                       out,
                       split_option);
    }
@@ -3439,7 +3458,7 @@ namespace strtk
                             const split_options::type& split_option = split_options::default_mode)
    {
       return split(single_delimiter_predicate<std::string::value_type>(delimiter),
-                   str.data(), str.data() + str.size(),
+                   to_ptr(str), to_ptr(str) + str.size(),
                    out,
                    split_option);
    }
@@ -3453,12 +3472,12 @@ namespace strtk
    {
       if (1 == details::strnlength(delimiters,256))
          return split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-                      str.data(), str.data() + str.size(),
+                      to_ptr(str), to_ptr(str) + str.size(),
                       std::back_inserter(sequence),
                       split_option);
       else
          return split(multiple_char_delimiter_predicate(delimiters),
-                      str.data(), str.data() + str.size(),
+                      to_ptr(str), to_ptr(str) + str.size(),
                       std::back_inserter(sequence),
                       split_option);
    }
@@ -3472,12 +3491,12 @@ namespace strtk
    {
       if (1 == delimiters.size())
          return split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-                      str.data(), str.data() + str.size(),
+                      to_ptr(str), to_ptr(str) + str.size(),
                       std::back_inserter(sequence),
                       split_option);
       else
          return split(multiple_char_delimiter_predicate(delimiters),
-                      str.data(), str.data() + str.size(),
+                      to_ptr(str), to_ptr(str) + str.size(),
                       std::back_inserter(sequence),
                       split_option);
    }
@@ -3490,7 +3509,7 @@ namespace strtk
                             const split_options::type& split_option = split_options::default_mode)
    {
       return split(delimiter,
-                   str.data(), str.data() + str.size(),
+                   to_ptr(str), to_ptr(str) + str.size(),
                    out,
                    split_option);
    }
@@ -3571,7 +3590,7 @@ namespace strtk
                               const split_options::type& split_option = split_options::default_mode)
    {
       return split_n(multiple_char_delimiter_predicate(delimiters),
-                     str.data(), str.data() + str.size(),
+                     to_ptr(str), to_ptr(str) + str.size(),
                      token_count,
                      out,
                      split_option);
@@ -3586,13 +3605,13 @@ namespace strtk
    {
       if (1 == delimiters.size())
          return split_n(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-                        str.data(), str.data() + str.size(),
+                        to_ptr(str), to_ptr(str) + str.size(),
                         token_count,
                         out,
                         split_option);
       else
          return split_n(multiple_char_delimiter_predicate(delimiters),
-                        str.data(), str.data() + str.size(),
+                        to_ptr(str), to_ptr(str) + str.size(),
                         token_count,
                         out,
                         split_option);
@@ -3630,7 +3649,7 @@ namespace strtk
                               const split_options::type& split_option = split_options::default_mode)
    {
       return split_n(single_delimiter_predicate<std::string::value_type>(delimiter),
-                     str.data(),str.data() + str.size(),
+                     to_ptr(str), to_ptr(str) + str.size(),
                      token_count,
                      out,
                      split_option);
@@ -3645,7 +3664,7 @@ namespace strtk
                               const split_options::type& split_option = split_options::default_mode)
    {
       return split_n(delimiter,
-                     str.data(),str.data() + str.size(),
+                     to_ptr(str), to_ptr(str) + str.size(),
                      token_count,
                      out,
                      split_option);
@@ -3992,7 +4011,7 @@ namespace strtk
                                       const OffsetPredicate& offset,
                                       OutputIterator out)
    {
-      return offset_splitter(str.data(),str.data() + str.size(),offset,out);
+      return offset_splitter(to_ptr(str), to_ptr(str) + str.size(), offset, out);
    }
 
    template <typename InputIterator,
@@ -4034,8 +4053,7 @@ namespace strtk
                           std::pair<const char*,const char*>& v1,
                           std::pair<const char*,const char*>& v2)
    {
-      return split_pair(str.data(),
-                        str.data() + str.size(),
+      return split_pair(to_ptr(str), to_ptr(str) + str.size(),
                         single_delimiter_predicate<std::string::value_type>(delimiter),
                         v1,
                         v2);
@@ -4047,8 +4065,7 @@ namespace strtk
                           std::pair<const char*,const char*>& v1,
                           std::pair<const char*,const char*>& v2)
    {
-      return split_pair(str.data(),
-                        str.data() + str.size(),
+      return split_pair(to_ptr(str), to_ptr(str) + str.size(),
                         delimiter,
                         v1,
                         v2);
@@ -4254,8 +4271,8 @@ namespace strtk
 
    inline void lexicographically_canonicalize(std::string& str)
    {
-      lexicographically_canonicalize(const_cast<char*>(str.data()),
-                                     const_cast<char*>(str.data() + str.size()));
+      lexicographically_canonicalize(const_cast<char*>(to_ptr(str)),
+                                     const_cast<char*>(to_ptr(str) + str.size()));
    }
 
    template <typename T,
@@ -4263,7 +4280,7 @@ namespace strtk
              template <typename,typename> class Sequence>
    inline void lexicographically_canonicalize(Sequence<T,Allocator>& sequence)
    {
-      lexicographically_canonicalize(sequence.begin(),sequence.end());
+      lexicographically_canonicalize(sequence.begin(), sequence.end());
    }
 
    inline const char* first_non_repeated_char(const char* begin, const char* end)
@@ -4278,9 +4295,11 @@ namespace strtk
 
       const char* itr = begin;
       unsigned long long int position = 0;
+
       while (end != itr)
       {
          unsigned long long int& element = lut[static_cast<unsigned int>(*itr)];
+
          if (not_yet_encountered == element)
          {
             element = position;
@@ -4308,6 +4327,7 @@ namespace strtk
    {
       char * b = reinterpret_cast<char*>(const_cast<unsigned char*>(begin));
       char * e = reinterpret_cast<char*>(const_cast<unsigned char*>(end));
+
       return const_cast<const unsigned char*>(reinterpret_cast<unsigned char*>(const_cast<char*>(first_non_repeated_char(b,e))));
    }
 
@@ -4315,9 +4335,11 @@ namespace strtk
    {
       if (str.empty())
          return static_cast<std::size_t>(std::string::npos);
-      const char* itr = first_non_repeated_char(str.data(),str.data() + str.size());
-      if ((str.data() + str.size()) != itr)
-         return static_cast<std::size_t>(itr - str.data());
+
+      const char* itr = first_non_repeated_char(to_ptr(str), to_ptr(str) + str.size());
+
+      if ((to_ptr(str) + str.size()) != itr)
+         return static_cast<std::size_t>(itr - to_ptr(str));
       else
          return static_cast<std::size_t>(std::string::npos);
    }
@@ -4392,9 +4414,10 @@ namespace strtk
    inline void convert_bin_to_hex(const std::string& binary_data, std::string& output)
    {
       output.resize(binary_data.size() * 2);
-      convert_bin_to_hex(binary_data.data(),
-                         binary_data.data() + binary_data.size(),
-                         const_cast<char*>(output.data()));
+
+      convert_bin_to_hex(to_ptr(binary_data),
+                         to_ptr(binary_data) + binary_data.size(),
+                         const_cast<char*>(to_ptr(output)));
    }
 
    inline std::string convert_bin_to_hex(const std::string& binary_data)
@@ -4407,10 +4430,12 @@ namespace strtk
    inline bool convert_hex_to_bin(const unsigned char* begin, const unsigned char* end, unsigned char* out)
    {
       const std::size_t length = std::distance(begin,end);
+
       if (0 == length)
          return false;
       else if (1 == (length % 2))
          return false;
+
       static const unsigned char hex_to_bin[] =
                                  {
                                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // 0x00 - 0x07
@@ -4493,9 +4518,9 @@ namespace strtk
 
       output.resize(hex_data.size() >> 1);
 
-      return convert_hex_to_bin(hex_data.data(),
-                                hex_data.data() + hex_data.size(),
-                                const_cast<char*>(output.data()));
+      return convert_hex_to_bin(to_ptr(hex_data),
+                                to_ptr(hex_data) + hex_data.size(),
+                                const_cast<char*>(to_ptr(output)));
    }
 
    inline std::size_t convert_bin_to_base64(const unsigned char* begin, const unsigned char* end, unsigned char* out)
@@ -4503,6 +4528,7 @@ namespace strtk
       static const unsigned char bin_to_base64 [] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
       const std::size_t length = std::distance(begin,end);
+
       std::size_t rounds = length / 3;
       const unsigned char* itr = begin;
 
@@ -4555,9 +4581,10 @@ namespace strtk
    inline void convert_bin_to_base64(const std::string& binary_data, std::string& output)
    {
       output.resize(std::max<std::size_t>(4,binary_data.size() << 1));
-      std::size_t resize = convert_bin_to_base64(binary_data.data(),
-                                                 binary_data.data() + binary_data.size(),
-                                                 const_cast<char*>(output.data()));
+
+      std::size_t resize = convert_bin_to_base64(to_ptr(binary_data),
+                                                 to_ptr(binary_data) + binary_data.size(),
+                                                 const_cast<char*>(to_ptr(output)));
       output.resize(resize);
    }
 
@@ -4659,9 +4686,9 @@ namespace strtk
    inline void convert_base64_to_bin(const std::string& binary_data, std::string& output)
    {
       output.resize(binary_data.size());
-      std::size_t resize = convert_base64_to_bin(binary_data.data(),
-                                                 binary_data.data() + binary_data.size(),
-                                                 const_cast<char*>(output.data()));
+      std::size_t resize = convert_base64_to_bin(to_ptr(binary_data),
+                                                 to_ptr(binary_data) + binary_data.size(),
+                                                 const_cast<char*>(to_ptr(output)));
       output.resize(resize);
    }
 
@@ -4720,8 +4747,8 @@ namespace strtk
 
    inline void convert_to_printable_chars(std::string& str)
    {
-      convert_to_printable_chars(reinterpret_cast<unsigned char*>(const_cast<char*>(str.data())),
-                                 reinterpret_cast<unsigned char*>(const_cast<char*>(str.data() + str.size())));
+      convert_to_printable_chars(reinterpret_cast<unsigned char*>(const_cast<char*>(to_ptr(str))),
+                                 reinterpret_cast<unsigned char*>(const_cast<char*>(to_ptr(str) + str.size())));
    }
 
    inline void convert_to_uppercase(unsigned char* begin, unsigned char* end)
@@ -4746,8 +4773,8 @@ namespace strtk
 
    inline void convert_to_uppercase(std::string& str)
    {
-      convert_to_uppercase(reinterpret_cast<unsigned char*>(const_cast<char*>(str.data())),
-                           reinterpret_cast<unsigned char*>(const_cast<char*>(str.data() + str.size())));
+      convert_to_uppercase(reinterpret_cast<unsigned char*>(const_cast<char*>(to_ptr(str))),
+                           reinterpret_cast<unsigned char*>(const_cast<char*>(to_ptr(str) + str.size())));
    }
 
    inline void convert_to_lowercase(unsigned char* begin, unsigned char* end)
@@ -4777,8 +4804,8 @@ namespace strtk
 
    inline void convert_to_lowercase(std::string& str)
    {
-      convert_to_lowercase(reinterpret_cast<unsigned char*>(const_cast<char*>(str.data())),
-                           reinterpret_cast<unsigned char*>(const_cast<char*>(str.data() + str.size())));
+      convert_to_lowercase(reinterpret_cast<unsigned char*>(const_cast<char*>(to_ptr(str))),
+                           reinterpret_cast<unsigned char*>(const_cast<char*>(to_ptr(str) + str.size())));
    }
 
    inline std::string as_lowercase(const std::string& str)
@@ -4876,9 +4903,9 @@ namespace strtk
 
       out.resize(str1.size());
 
-      return twoway_bitwise_interleave(str1.data(),str1.data() + str1.size(),
-                                       str2.data(),str2.data() + str2.size(),
-                                       const_cast<char*>(out.data()));
+      return twoway_bitwise_interleave(to_ptr(str1), to_ptr(str1) + str1.size(),
+                                       to_ptr(str2), to_ptr(str2) + str2.size(),
+                                       const_cast<char*>(to_ptr(out)));
    }
 
    template <std::size_t n>
@@ -4892,11 +4919,13 @@ namespace strtk
    inline void create_nway_interleave_table(typename interleave_ary<n>::type table[256])
    {
       typedef typename interleave_ary<n>::type type;
+
       const type diff = static_cast<type>(n - 1);
 
       for (type i = static_cast<type>(0); i < static_cast<type>(256); ++i)
       {
          table[i] = 0x00;
+
          for (type j = static_cast<type>(0); j < static_cast<type>(8); ++j)
          {
             table[i] |= (i & (1 << j)) << (j * diff);
@@ -4942,9 +4971,9 @@ namespace strtk
       if (str1.size() != str2.size()) return;
       out.resize(str1.size());
       bitwise_transform(operation,
-                        str1.data(),str1.data() + str1.size(),
-                        str2.data(),
-                        const_cast<char*>(out.data()));
+                        to_ptr(str1), to_ptr(str1) + str1.size(),
+                        to_ptr(str2),
+                        const_cast<char*>(to_ptr(out)));
    }
 
    inline std::size_t high_bit_count(const unsigned char c)
@@ -5016,7 +5045,7 @@ namespace strtk
 
    inline std::size_t high_bit_count(const std::string& str)
    {
-      return high_bit_count(str.data(),str.data() + str.size());
+      return high_bit_count(to_ptr(str), to_ptr(str) + str.size());
    }
 
    inline bool bit_state(const std::size_t& index, const unsigned char* ptr)
@@ -5098,8 +5127,8 @@ namespace strtk
 
    inline std::size_t hamming_distance(const std::string& str1, const std::string& str2)
    {
-      return hamming_distance(str1.data(), str1.data() + str1.size(),
-                              str2.data(), str2.data() + str2.size());
+      return hamming_distance(to_ptr(str1), to_ptr(str1) + str1.size(),
+                              to_ptr(str2), to_ptr(str2) + str2.size());
    }
 
    template <typename Iterator>
@@ -5126,8 +5155,8 @@ namespace strtk
 
    inline std::size_t hamming_distance_elementwise(const std::string& str1, const std::string& str2)
    {
-      return hamming_distance_elementwise(str1.data(), str1.data() + str1.size(),
-                                          str2.data(), str2.data() + str2.size());
+      return hamming_distance_elementwise(to_ptr(str1), to_ptr(str1) + str1.size(),
+                                          to_ptr(str2), to_ptr(str2) + str2.size());
    }
 
    class token_grid
@@ -5166,6 +5195,7 @@ namespace strtk
             if (row < row_index.size())
             {
                const row_index_range_t& r = row_index[row];
+
                if (col < (r.second - r.first + 1))
                   return *(token_list.begin() + (r.first + col));
                else
@@ -5180,17 +5210,22 @@ namespace strtk
             if (row >= row_index.size()) return false;
 
             row_index_range_t& r = row_index[row];
-            std::size_t number_of_tokens = r.second - r.first + 1;
+
+            const std::size_t number_of_tokens = r.second - r.first + 1;
+
             token_list_t::iterator remove_begin = token_list.begin() + r.first;
             token_list_t::iterator remove_end = token_list.begin() + r.first + number_of_tokens;
+
             token_list.erase(remove_begin,remove_end);
+
             row_index.erase(row_index.begin() + row);
 
             for (std::size_t i = row; i < row_index.size(); ++i)
             {
-               row_index_range_t& r = row_index[i];
-               r.first  -= static_cast<unsigned int>(number_of_tokens);
-               r.second -= static_cast<unsigned int>(number_of_tokens);
+               row_index_range_t& curr_row = row_index[i];
+
+               curr_row.first  -= static_cast<unsigned int>(number_of_tokens);
+               curr_row.second -= static_cast<unsigned int>(number_of_tokens);
             }
 
             return true;
@@ -5224,9 +5259,12 @@ namespace strtk
             }
 
             row_index_range_t rr0 = row_index[r0];
+
             token_list_t::iterator remove_begin = token_list.begin() + rr0.first;
-            token_list_t::iterator remove_end = token_list.begin() + rr0.first + number_of_tokens;
+            token_list_t::iterator remove_end   = token_list.begin() + rr0.first + number_of_tokens;
+
             token_list.erase(remove_begin,remove_end);
+
             row_index.erase(row_index.begin() + r0,row_index.begin() + r0 + (r1 - r0 + 1));
 
             for (std::size_t i = r0; i < row_index.size(); ++i)
@@ -5252,10 +5290,13 @@ namespace strtk
 
                while (current_row < idx.row_index.size())
                {
-                  std::size_t number_of_tokens = idx.token_count(current_row);
+                  const std::size_t number_of_tokens = idx.token_count(current_row);
+
                   if (number_of_tokens > column)
                      break;
+
                   counter += number_of_tokens;
+
                   ++current_row;
                }
 
@@ -5273,11 +5314,12 @@ namespace strtk
             {
                token_list_t::iterator itr1 = idx.token_list.begin();
                token_list_t::iterator itr2 = idx.token_list.begin();
-               token_list_t::iterator end  = idx.token_list.end();
+               token_list_t::iterator end  = idx.token_list.end  ();
 
-               counter = 0;
-               remainder = 0;
+               counter     = 0;
+               remainder   = 0;
                current_row = static_cast<std::size_t>(-1);
+
                update(idx);
 
                while (end != itr1)
@@ -5302,12 +5344,14 @@ namespace strtk
                }
 
                std::size_t remove_count = 0;
+
                idx.max_column = std::numeric_limits<std::size_t>::min();
 
                for (std::size_t i = 0; i < idx.row_index.size(); ++i)
                {
                   row_index_range_t& r = idx.row_index[i];
                   std::size_t token_count = (r.second - r.first + 1);
+
                   r.first -= static_cast<unsigned int>(remove_count);
 
                   if (token_count > column)
@@ -5367,11 +5411,12 @@ namespace strtk
             row_start_index_ = static_cast<index_t>(idx_.token_list.size());
 
             std::size_t token_count = split(token_predicate_,
-                                            range.first,range.second,
+                                            range.first, range.second,
                                             std::back_inserter(idx_.token_list),
                                             split_mode_);
 
-            row_end_index_ = row_start_index_ + token_count - 1;
+            row_end_index_ = static_cast<index_t>(row_start_index_ + token_count - 1);
+
             idx_.row_index.push_back(std::make_pair(row_start_index_,row_end_index_));
 
             if (token_count > idx_.max_column)
@@ -5389,21 +5434,22 @@ namespace strtk
 
    public:
 
-      inline row_range_t range(std::size_t lower_bound,
-                                  std::size_t upper_bound = std::numeric_limits<std::size_t>::max()) const
+      inline row_range_t range(index_t lower_bound,
+                               index_t upper_bound = std::numeric_limits<index_t>::max()) const
       {
-         if (upper_bound == std::numeric_limits<std::size_t>::max())
+         if (upper_bound == std::numeric_limits<index_t>::max())
          {
-            upper_bound = dsv_index_.token_list.size();
+            upper_bound = static_cast<index_t>(dsv_index_.token_list.size());
          }
          else if (upper_bound > dsv_index_.token_list.size())
          {
-            return row_range_t(std::numeric_limits<std::size_t>::max(),std::numeric_limits<std::size_t>::max());
+            return row_range_t(std::numeric_limits<index_t>::max(),std::numeric_limits<index_t>::max());
          }
          else if (lower_bound > upper_bound)
          {
-            return row_range_t(std::numeric_limits<std::size_t>::max(),std::numeric_limits<std::size_t>::max());
+            return row_range_t(std::numeric_limits<index_t>::max(),std::numeric_limits<index_t>::max());
          }
+
          return row_range_t(lower_bound,upper_bound);
       }
 
@@ -5876,10 +5922,10 @@ namespace strtk
                return true;
          }
 
-         col_range_t range(const std::size_t& lower_bound,
-                           const std::size_t& upper_bound = std::numeric_limits<std::size_t>::max()) const
+         col_range_t range(const index_t& lower_bound,
+                           const index_t& upper_bound = std::numeric_limits<index_t>::max()) const
          {
-            if (std::numeric_limits<std::size_t>::max() != upper_bound)
+            if (std::numeric_limits<index_t>::max() != upper_bound)
                return col_range_t(lower_bound,upper_bound);
             else
               return col_range_t(lower_bound,static_cast<index_t>(size()));
@@ -5900,8 +5946,8 @@ namespace strtk
 
             while (end != itr)
             {
-               const range_t& range = (*itr);
-               if (string_to_type_converter(range.first,range.second,t))
+               const range_t& curr_range = (*itr);
+               if (string_to_type_converter(curr_range.first, curr_range.second,t))
                   sequence.push_back(t);
                else
                   return false;
@@ -6268,7 +6314,7 @@ namespace strtk
                  const std::size_t& input_buffer_size,
                  const token_grid::options& options)
       : file_name_(""),
-        buffer_(reinterpret_cast<unsigned char*>(const_cast<char*>(input_buffer.data()))),
+        buffer_(reinterpret_cast<unsigned char*>(const_cast<char*>(to_ptr(input_buffer)))),
         buffer_size_(input_buffer_size),
         min_column_count_(0),
         max_column_count_(0),
@@ -6332,7 +6378,7 @@ namespace strtk
                  const std::string& column_delimiters = ",;|\t ",
                  const std::string& row_delimiters = "\n\r")
       : file_name_(""),
-        buffer_(reinterpret_cast<unsigned char*>(const_cast<char*>(input_buffer.data()))),
+        buffer_(reinterpret_cast<unsigned char*>(const_cast<char*>(to_ptr(input_buffer)))),
         buffer_size_(input_buffer_size),
         min_column_count_(0),
         max_column_count_(0),
@@ -6378,19 +6424,19 @@ namespace strtk
          return max_column_count_;
       }
 
-      inline range_t token(const unsigned int& row, const std::size_t& col) const
+      inline range_t token(const std::size_t& row, const std::size_t& col) const
       {
          return dsv_index_(col,row);
       }
 
       template <typename T>
-      inline T get(const unsigned int& row, const std::size_t& col)
+      inline T get(const std::size_t& row, const std::size_t& col)
       {
          range_t r = token(row,col);
          return string_to_type_converter<T>(r.first,r.second);
       }
 
-      inline row_type row(const unsigned int& row_index) const
+      inline row_type row(const std::size_t& row_index) const
       {
          return row_type(row_index,dsv_index_);
       }
@@ -6409,15 +6455,18 @@ namespace strtk
             return false;
          else if (row_range_invalid(row_range))
             return false;
+
          for (std::size_t i = row_range.first; i < row_range.second; ++i)
          {
             const row_index_range_t& row = dsv_index_.row_index[i];
+
             if (index < dsv_index_.token_count(row))
             {
                dsv_index_.token_list.begin() + (row.first + index);
                process_token_checked(*(dsv_index_.token_list.begin() + (row.first + index)),out);
             }
          }
+
          return true;
       }
 
@@ -6465,14 +6514,17 @@ namespace strtk
             return false;
          else if (row_range_invalid(row_range))
             return false;
+
          for (std::size_t i = row_range.first; i < row_range.second; ++i)
          {
             const row_index_range_t& row = dsv_index_.row_index[i];
+
             if (index < dsv_index_.token_count(row))
             {
                process_token(*(dsv_index_.token_list.begin() + (row.first + index)),out);
             }
          }
+
          return true;
       }
 
@@ -6490,8 +6542,10 @@ namespace strtk
                                  OutputIterator0 out0,
                                  OutputIterator1 out1) const
       {
-         if ((index0 > max_column_count_) ||
-             (index1 > max_column_count_))
+         if (
+              (index0 > max_column_count_) ||
+              (index1 > max_column_count_)
+            )
             return false;
          else if (row_range_invalid(row_range))
             return false;
@@ -6501,6 +6555,7 @@ namespace strtk
          for (std::size_t i = row_range.first; i < row_range.second; ++i)
          {
             const row_index_range_t& row = dsv_index_.row_index[i];
+
             if (max_index < dsv_index_.token_count(row))
             {
                process_token(*(dsv_index_.token_list.begin() + (row.first + index0)),out0);
@@ -6520,9 +6575,11 @@ namespace strtk
                                  OutputIterator1 out1,
                                  OutputIterator2 out2) const
       {
-         if ((index0 > max_column_count_) ||
-             (index1 > max_column_count_) ||
-             (index2 > max_column_count_))
+         if (
+              (index0 > max_column_count_) ||
+              (index1 > max_column_count_) ||
+              (index2 > max_column_count_)
+            )
             return false;
          else if (row_range_invalid(row_range))
             return false;
@@ -6532,6 +6589,7 @@ namespace strtk
          for (std::size_t i = row_range.first; i < row_range.second; ++i)
          {
             const row_index_range_t& row = dsv_index_.row_index[i];
+
             if (max_index < dsv_index_.token_count(row))
             {
                process_token(*(dsv_index_.token_list.begin() + (row.first + index0)),out0);
@@ -6555,10 +6613,12 @@ namespace strtk
                                  OutputIterator2 out2,
                                  OutputIterator3 out3) const
       {
-         if ((index0 > max_column_count_) ||
-             (index1 > max_column_count_) ||
-             (index2 > max_column_count_) ||
-             (index3 > max_column_count_))
+         if (
+              (index0 > max_column_count_) ||
+              (index1 > max_column_count_) ||
+              (index2 > max_column_count_) ||
+              (index3 > max_column_count_)
+            )
             return false;
          else if (row_range_invalid(row_range))
             return false;
@@ -6596,11 +6656,13 @@ namespace strtk
                                  OutputIterator3 out3,
                                  OutputIterator4 out4) const
       {
-         if ((index0 > max_column_count_) ||
-             (index1 > max_column_count_) ||
-             (index2 > max_column_count_) ||
-             (index3 > max_column_count_) ||
-             (index4 > max_column_count_))
+         if (
+              (index0 > max_column_count_) ||
+              (index1 > max_column_count_) ||
+              (index2 > max_column_count_) ||
+              (index3 > max_column_count_) ||
+              (index4 > max_column_count_)
+            )
             return false;
          else if (row_range_invalid(row_range))
             return false;
@@ -6639,6 +6701,7 @@ namespace strtk
             return false;
 
          std::size_t removed_token_count = 0;
+
          std::deque<std::size_t> remove_token_list;
          std::deque<std::size_t> remove_row_list;
 
@@ -6651,10 +6714,12 @@ namespace strtk
             if (predicate(row))
             {
                remove_row_list.push_back(i);
+
                for (std::size_t j = r.first; j <= r.second; ++j)
                {
                   remove_token_list.push_back(j);
                }
+
                removed_token_count += row.size();
             }
 
@@ -6665,6 +6730,7 @@ namespace strtk
          for (std::size_t i = row_range.second; i < dsv_index_.row_index.size(); ++i)
          {
             row_index_range_t& r = dsv_index_.row_index[i];
+
             r.first  -= static_cast<unsigned int>(removed_token_count);
             r.second -= static_cast<unsigned int>(removed_token_count);
          }
@@ -6764,6 +6830,7 @@ namespace strtk
             return;
 
          remove_row_if(insufficient_number_of_columns(column_count));
+
          min_column_count_ = column_count;
          max_column_count_ = column_count;
       }
@@ -6781,6 +6848,7 @@ namespace strtk
             return;
 
          remove_row_if(insufficient_number_of_minmax_columns(min_column_count,max_column_count));
+
          min_column_count_ = min_column_count;
          max_column_count_ = max_column_count;
       }
@@ -6795,13 +6863,14 @@ namespace strtk
       {
          if (load_from_file_ || force_delete_buffer)
             delete[] buffer_;
-         buffer_ = 0;
-         buffer_size_ = 0;
-         dsv_index_.clear();
+
+         buffer_           = 0;
+         buffer_size_      = 0;
          min_column_count_ = 0;
          max_column_count_ = 0;
-         state_ = false;
-         file_name_ = "";
+         state_            = false;
+         file_name_        = "";
+         dsv_index_.clear();
       }
 
       inline std::size_t column_width(const std::size_t& col,
@@ -6821,6 +6890,7 @@ namespace strtk
             if (col < dsv_index_.token_count(r))
             {
                const range_t& range = *(dsv_index_.token_list.begin() + r.first + col);
+
                result = std::max<std::size_t>(std::distance(range.first,range.second),result);
             }
          }
@@ -6860,8 +6930,10 @@ namespace strtk
             return 0;
 
          const row_index_range_t& r = dsv_index_.row_index[row];
+
          token_list_t::const_iterator itr = dsv_index_.token_list.begin() + r.first;
          token_list_t::const_iterator end = dsv_index_.token_list.begin() + r.second + 1;
+
          std::size_t process_count = 0;
          T current_value = T();
 
@@ -6901,6 +6973,7 @@ namespace strtk
             if (col < dsv_index_.token_count(r))
             {
                const range_t& range = *(dsv_index_.token_list.begin() + r.first + col);
+
                if (string_to_type_converter(range.first,range.second,current_value))
                   result += current_value;
                else
@@ -6944,6 +7017,7 @@ namespace strtk
                if (p(row))
                {
                   const range_t& range = row.token(col);
+
                   if (string_to_type_converter(range.first,range.second,current_value))
                   {
                      result += current_value;
@@ -6974,9 +7048,12 @@ namespace strtk
             return false;
 
          const row_index_range_t& r = dsv_index_.row_index[row];
+
          token_list_t::const_iterator itr = dsv_index_.token_list.begin() + r.first;
          token_list_t::const_iterator end = dsv_index_.token_list.begin() + r.second + (row < (dsv_index_.row_index.size() - 1) ? 1 : 0);
+
          result.reserve(delimiter.size() * dsv_index_.token_count(r) + std::distance(itr->first,end->second));
+
          bool appended = false;
 
          while (end != itr)
@@ -7008,9 +7085,12 @@ namespace strtk
             return false;
 
          const row_index_range_t& r = dsv_index_.row_index[row];
+
          token_list_t::const_iterator itr = (dsv_index_.token_list.begin() + r.first);
          token_list_t::const_iterator end = dsv_index_.token_list.begin() + r.second + (row < (dsv_index_.row_index.size() - 1) ? 1 : 0);
+
          result.reserve(delimiter.size() * dsv_index_.token_count(r) + std::distance(itr->first,end->second));
+
          bool appended = false;
 
          while (end != itr)
@@ -7063,6 +7143,7 @@ namespace strtk
             if (col < dsv_index_.token_count(r))
             {
                row_type row = row_type(i,dsv_index_);
+
                const range_t& range = row.token(col);
 
                if (!delimiter.empty() && appended)
@@ -7101,6 +7182,7 @@ namespace strtk
             return false;
 
          bool appended = false;
+
          const std::size_t pre_end_index = row_range.second - 1;
 
          for (std::size_t i = row_range.first; i < row_range.second; ++i)
@@ -7235,7 +7317,7 @@ namespace strtk
          {
             file_name_ = "";
 
-            if ((load_from_file_) && (0 != buffer_))
+            if (load_from_file_ && buffer_)
             {
                delete [] buffer_;
                buffer_ = 0;
@@ -7251,7 +7333,7 @@ namespace strtk
       {
          file_name_ = "";
 
-         if ((load_from_file_) && (0 != buffer_))
+         if (load_from_file_ && buffer_)
          {
             delete [] buffer_;
             buffer_ = 0;
@@ -7271,7 +7353,7 @@ namespace strtk
          {
             file_name_ = "";
 
-            if ((load_from_file_) && (0 != buffer_))
+            if (load_from_file_ && buffer_)
             {
                delete [] buffer_;
                buffer_ = 0;
@@ -7374,7 +7456,8 @@ namespace strtk
             strtk::split(text_newline_predicate,
                          buffer_, buffer_ + buffer_size_,
                          strtk::functional_inserter(
-                            row_processor<multiple_char_delimiter_predicate>(dsv_index_,token_predicate,options_.column_split_option)),
+                            row_processor<multiple_char_delimiter_predicate>
+                              (dsv_index_,token_predicate,options_.column_split_option)),
                          strtk::split_options::compress_delimiters);
          }
          else
@@ -7384,7 +7467,8 @@ namespace strtk
             strtk::split(text_newline_predicate,
                          buffer_, buffer_ + buffer_size_,
                          strtk::functional_inserter(
-                            row_processor<double_quotes_predicate>(dsv_index_,token_predicate_dblq,options_.column_split_option)),
+                            row_processor<double_quotes_predicate>
+                              (dsv_index_,token_predicate_dblq,options_.column_split_option)),
                         strtk::split_options::compress_delimiters);
 
             if (options_.trim_dquotes)
@@ -7441,7 +7525,9 @@ namespace strtk
       inline void process_token_checked(const range_t& range, OutputIterator out) const
       {
          typedef typename std::iterator_traits<OutputIterator>::value_type output_type;
+
          output_type value;
+
          if (string_to_type_converter(range.first,range.second,value))
          {
             (*out) = value;
@@ -7465,6 +7551,7 @@ namespace strtk
       {
          min_column_count_ = std::numeric_limits<std::size_t>::max();
          max_column_count_ = std::numeric_limits<std::size_t>::min();
+
          for (std::size_t i = 0; i < dsv_index_.row_index.size(); ++i)
          {
             const row_index_range_t& r = dsv_index_.row_index[i];
@@ -7606,8 +7693,8 @@ namespace strtk
          {
             if (
                  (case_insensitive_ &&
-                 (imatch((*itr).data(),(*itr).data() + (*itr).size(),range.first,range.second))) ||
-                 (!case_insensitive_ && std::equal((*itr).begin(),(*itr).end(),range.first))
+                 (imatch(to_ptr((*itr)), to_ptr((*itr)) + (*itr).size(), range.first,range.second))) ||
+                 (!case_insensitive_ && std::equal((*itr).begin(), (*itr).end(), range.first))
                )
             {
                if (allow_through_on_match_)
@@ -7901,6 +7988,197 @@ namespace strtk
    };
 
    template <typename InputIterator,
+             typename T1 , typename  T2, typename  T3, typename  T4,
+             typename T5 , typename  T6, typename  T7, typename  T8,
+             typename T9 , typename T10, typename T11, typename T12,
+             typename T13, typename T14, typename T15, typename T16>
+   inline bool parse(const InputIterator begin,
+                     const InputIterator end,
+                     const std::string& delimiters,
+                     T1&  t1 ,  T2&  t2,  T3&  t3,  T4&  t4,
+                     T5&  t5 ,  T6&  t6,  T7&  t7,  T8&  t8,
+                     T9&  t9 , T10& t10, T11& t11, T12& t12,
+                     T13& t13, T14& t14, T15& t15, T16& t16)
+   {
+      typedef typename details::is_valid_iterator<InputIterator>::type itr_type;
+      details::convert_type_assert<itr_type>();
+      static const std::size_t token_count = 16;
+      typedef std::pair<InputIterator,InputIterator> iterator_type;
+      typedef iterator_type* iterator_type_ptr;
+      iterator_type token_list[token_count];
+
+      const std::size_t parsed_token_count = split_n(delimiters,
+                                                     begin, end,
+                                                     token_count,
+                                                     token_list,
+                                                     split_options::compress_delimiters);
+      if (token_count > parsed_token_count)
+         return false;
+
+      iterator_type_ptr itr = token_list;
+
+      #define strtk_cmpstmt(N)                                         \
+      if (!string_to_type_converter((*itr).first,(*itr).second, t##N)) \
+         return false;                                                 \
+      ++itr;                                                           \
+
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      strtk_cmpstmt( 4)
+      strtk_cmpstmt( 5)
+      strtk_cmpstmt( 6)
+      strtk_cmpstmt( 7)
+      strtk_cmpstmt( 8)
+      strtk_cmpstmt( 9)
+      strtk_cmpstmt(10)
+      strtk_cmpstmt(11)
+      strtk_cmpstmt(12)
+      strtk_cmpstmt(13)
+      strtk_cmpstmt(14)
+      strtk_cmpstmt(15)
+      return string_to_type_converter((*itr).first,(*itr).second,t16);
+   }
+
+   template <typename InputIterator,
+             typename T1 , typename  T2, typename  T3, typename  T4,
+             typename T5 , typename  T6, typename  T7, typename  T8,
+             typename T9 , typename T10, typename T11, typename T12,
+             typename T13, typename T14, typename T15>
+   inline bool parse(const InputIterator begin,
+                     const InputIterator end,
+                     const std::string& delimiters,
+                     T1&  t1 ,  T2&  t2,  T3&  t3,  T4&  t4,
+                     T5&  t5 ,  T6&  t6,  T7&  t7,  T8&  t8,
+                     T9&  t9 , T10& t10, T11& t11, T12& t12,
+                     T13& t13, T14& t14, T15& t15)
+   {
+      typedef typename details::is_valid_iterator<InputIterator>::type itr_type;
+      details::convert_type_assert<itr_type>();
+      static const std::size_t token_count = 15;
+      typedef std::pair<InputIterator,InputIterator> iterator_type;
+      typedef iterator_type* iterator_type_ptr;
+      iterator_type token_list[token_count];
+
+      const std::size_t parsed_token_count = split_n(delimiters,
+                                                     begin, end,
+                                                     token_count,
+                                                     token_list,
+                                                     split_options::compress_delimiters);
+      if (token_count > parsed_token_count)
+         return false;
+
+      iterator_type_ptr itr = token_list;
+
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      strtk_cmpstmt( 4)
+      strtk_cmpstmt( 5)
+      strtk_cmpstmt( 6)
+      strtk_cmpstmt( 7)
+      strtk_cmpstmt( 8)
+      strtk_cmpstmt( 9)
+      strtk_cmpstmt(10)
+      strtk_cmpstmt(11)
+      strtk_cmpstmt(12)
+      strtk_cmpstmt(13)
+      strtk_cmpstmt(14)
+      return string_to_type_converter((*itr).first,(*itr).second,t15);
+   }
+
+   template <typename InputIterator,
+             typename T1 , typename  T2, typename  T3, typename  T4,
+             typename T5 , typename  T6, typename  T7, typename  T8,
+             typename T9 , typename T10, typename T11, typename T12,
+             typename T13, typename T14>
+   inline bool parse(const InputIterator begin,
+                     const InputIterator end,
+                     const std::string& delimiters,
+                     T1&  t1 ,  T2&  t2,  T3&  t3,  T4&  t4,
+                     T5&  t5 ,  T6&  t6,  T7&  t7,  T8&  t8,
+                     T9&  t9 , T10& t10, T11& t11, T12& t12,
+                     T13& t13, T14& t14)
+   {
+      typedef typename details::is_valid_iterator<InputIterator>::type itr_type;
+      details::convert_type_assert<itr_type>();
+      static const std::size_t token_count = 14;
+      typedef std::pair<InputIterator,InputIterator> iterator_type;
+      typedef iterator_type* iterator_type_ptr;
+      iterator_type token_list[token_count];
+
+      const std::size_t parsed_token_count = split_n(delimiters,
+                                                     begin, end,
+                                                     token_count,
+                                                     token_list,
+                                                     split_options::compress_delimiters);
+      if (token_count > parsed_token_count)
+         return false;
+
+      iterator_type_ptr itr = token_list;
+
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      strtk_cmpstmt( 4)
+      strtk_cmpstmt( 5)
+      strtk_cmpstmt( 6)
+      strtk_cmpstmt( 7)
+      strtk_cmpstmt( 8)
+      strtk_cmpstmt( 9)
+      strtk_cmpstmt(10)
+      strtk_cmpstmt(11)
+      strtk_cmpstmt(12)
+      strtk_cmpstmt(13)
+      return string_to_type_converter((*itr).first,(*itr).second,t14);
+   }
+
+   template <typename InputIterator,
+             typename T1 , typename  T2, typename  T3, typename  T4,
+             typename T5 , typename  T6, typename  T7, typename  T8,
+             typename T9 , typename T10, typename T11, typename T12,
+             typename T13>
+   inline bool parse(const InputIterator begin,
+                     const InputIterator end,
+                     const std::string& delimiters,
+                     T1&  t1 ,  T2&  t2,  T3&  t3,  T4&  t4,
+                     T5&  t5 ,  T6&  t6,  T7&  t7,  T8&  t8,
+                     T9&  t9 , T10& t10, T11& t11, T12& t12,
+                     T13& t13)
+   {
+      typedef typename details::is_valid_iterator<InputIterator>::type itr_type;
+      details::convert_type_assert<itr_type>();
+      static const std::size_t token_count = 13;
+      typedef std::pair<InputIterator,InputIterator> iterator_type;
+      typedef iterator_type* iterator_type_ptr;
+      iterator_type token_list[token_count];
+
+      const std::size_t parsed_token_count = split_n(delimiters,
+                                                     begin, end,
+                                                     token_count,
+                                                     token_list,
+                                                     split_options::compress_delimiters);
+      if (token_count > parsed_token_count)
+         return false;
+
+      iterator_type_ptr itr = token_list;
+
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      strtk_cmpstmt( 4)
+      strtk_cmpstmt( 5)
+      strtk_cmpstmt( 6)
+      strtk_cmpstmt( 7)
+      strtk_cmpstmt( 8)
+      strtk_cmpstmt( 9)
+      strtk_cmpstmt(10)
+      strtk_cmpstmt(11)
+      strtk_cmpstmt(12)
+      return string_to_type_converter((*itr).first,(*itr).second,t13);
+   }
+
+   template <typename InputIterator,
              typename T1, typename  T2, typename  T3, typename T4,
              typename T5, typename  T6, typename  T7, typename T8,
              typename T9, typename T10, typename T11, typename T12>
@@ -7919,7 +8197,7 @@ namespace strtk
       iterator_type token_list[token_count];
 
       const std::size_t parsed_token_count = split_n(delimiters,
-                                                     begin,end,
+                                                     begin, end,
                                                      token_count,
                                                      token_list,
                                                      split_options::compress_delimiters);
@@ -7928,19 +8206,18 @@ namespace strtk
 
       iterator_type_ptr itr = token_list;
 
-      if (!string_to_type_converter((*itr).first,(*itr).second, t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t2)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t3)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t4)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t5)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t6)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t7)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t8)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t9)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t10)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t11)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t12)) return false;
-      return true;
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      strtk_cmpstmt( 4)
+      strtk_cmpstmt( 5)
+      strtk_cmpstmt( 6)
+      strtk_cmpstmt( 7)
+      strtk_cmpstmt( 8)
+      strtk_cmpstmt( 9)
+      strtk_cmpstmt(10)
+      strtk_cmpstmt(11)
+      return string_to_type_converter((*itr).first,(*itr).second,t12);
    }
 
    template <typename InputIterator,
@@ -7962,7 +8239,7 @@ namespace strtk
       iterator_type token_list[token_count];
 
       const std::size_t parsed_token_count = split_n(delimiters,
-                                                     begin,end,
+                                                     begin, end,
                                                      token_count,
                                                      token_list,
                                                      split_options::compress_delimiters);
@@ -7972,18 +8249,17 @@ namespace strtk
 
       iterator_type_ptr itr = token_list;
 
-      if (!string_to_type_converter((*itr).first,(*itr).second, t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t2)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t3)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t4)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t5)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t6)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t7)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t8)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t9)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t10)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t11)) return false;
-      return true;
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      strtk_cmpstmt( 4)
+      strtk_cmpstmt( 5)
+      strtk_cmpstmt( 6)
+      strtk_cmpstmt( 7)
+      strtk_cmpstmt( 8)
+      strtk_cmpstmt( 9)
+      strtk_cmpstmt(10)
+      return string_to_type_converter((*itr).first,(*itr).second,t11);
    }
 
    template <typename InputIterator,
@@ -8005,7 +8281,7 @@ namespace strtk
       iterator_type token_list[token_count];
 
       const std::size_t parsed_token_count = split_n(delimiters,
-                                                     begin,end,
+                                                     begin, end,
                                                      token_count,
                                                      token_list,
                                                      split_options::compress_delimiters);
@@ -8014,17 +8290,16 @@ namespace strtk
          return false;
 
       iterator_type_ptr itr = token_list;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t2)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t3)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t4)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t5)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t6)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t7)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t8)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t9)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t10)) return false;
-      return true;
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      strtk_cmpstmt( 4)
+      strtk_cmpstmt( 5)
+      strtk_cmpstmt( 6)
+      strtk_cmpstmt( 7)
+      strtk_cmpstmt( 8)
+      strtk_cmpstmt( 9)
+      return string_to_type_converter((*itr).first,(*itr).second,t10);
    }
 
    template <typename InputIterator,
@@ -8046,7 +8321,7 @@ namespace strtk
       iterator_type token_list[token_count];
 
       const std::size_t parsed_token_count = split_n(delimiters,
-                                                     begin,end,
+                                                     begin, end,
                                                      token_count,
                                                      token_list,
                                                      split_options::compress_delimiters);
@@ -8054,16 +8329,15 @@ namespace strtk
          return false;
 
       iterator_type_ptr itr = token_list;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t2)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t3)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t4)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t5)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t6)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t7)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t8)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t9)) return false;
-      return true;
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      strtk_cmpstmt( 4)
+      strtk_cmpstmt( 5)
+      strtk_cmpstmt( 6)
+      strtk_cmpstmt( 7)
+      strtk_cmpstmt( 8)
+      return string_to_type_converter((*itr).first,(*itr).second,t9);
    }
 
    template <typename InputIterator,
@@ -8083,7 +8357,7 @@ namespace strtk
       iterator_type token_list[token_count];
 
       const std::size_t parsed_token_count = split_n(delimiters,
-                                                     begin,end,
+                                                     begin, end,
                                                      token_count,
                                                      token_list,
                                                      split_options::compress_delimiters);
@@ -8091,15 +8365,14 @@ namespace strtk
          return false;
 
       iterator_type_ptr itr = token_list;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t2)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t3)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t4)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t5)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t6)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t7)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t8)) return false;
-      return true;
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      strtk_cmpstmt( 4)
+      strtk_cmpstmt( 5)
+      strtk_cmpstmt( 6)
+      strtk_cmpstmt( 7)
+      return string_to_type_converter((*itr).first,(*itr).second,t8);
    }
 
    template <typename InputIterator,
@@ -8119,7 +8392,7 @@ namespace strtk
       iterator_type token_list[token_count];
 
       const std::size_t parsed_token_count = split_n(delimiters,
-                                                     begin,end,
+                                                     begin, end,
                                                      token_count,
                                                      token_list,
                                                      split_options::compress_delimiters);
@@ -8127,14 +8400,13 @@ namespace strtk
          return false;
 
       iterator_type_ptr itr = token_list;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t2)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t3)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t4)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t5)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t6)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t7)) return false;
-      return true;
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      strtk_cmpstmt( 4)
+      strtk_cmpstmt( 5)
+      strtk_cmpstmt( 6)
+      return string_to_type_converter((*itr).first,(*itr).second,t7);
    }
 
    template <typename InputIterator,
@@ -8154,7 +8426,7 @@ namespace strtk
       iterator_type token_list[token_count];
 
       const std::size_t parsed_token_count = split_n(delimiters,
-                                                     begin,end,
+                                                     begin, end,
                                                      token_count,
                                                      token_list,
                                                      split_options::compress_delimiters);
@@ -8162,13 +8434,12 @@ namespace strtk
          return false;
 
       iterator_type_ptr itr = token_list;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t2)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t3)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t4)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t5)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t6)) return false;
-      return true;
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      strtk_cmpstmt( 4)
+      strtk_cmpstmt( 5)
+      return string_to_type_converter((*itr).first,(*itr).second,t6);
    }
 
    template <typename InputIterator,
@@ -8188,7 +8459,7 @@ namespace strtk
       iterator_type token_list[token_count];
 
       const std::size_t parsed_token_count = split_n(delimiters,
-                                                     begin,end,
+                                                     begin, end,
                                                      token_count,
                                                      token_list,
                                                      split_options::compress_delimiters);
@@ -8197,12 +8468,11 @@ namespace strtk
          return false;
 
       iterator_type_ptr itr = token_list;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t2)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t3)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t4)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t5)) return false;
-      return true;
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      strtk_cmpstmt( 4)
+      return string_to_type_converter((*itr).first,(*itr).second,t5);
    }
 
    template <typename InputIterator,
@@ -8220,7 +8490,7 @@ namespace strtk
       iterator_type token_list[token_count];
 
       const std::size_t parsed_token_count = split_n(delimiters,
-                                                     begin,end,
+                                                     begin, end,
                                                      token_count,
                                                      token_list,
                                                      split_options::compress_delimiters);
@@ -8229,11 +8499,10 @@ namespace strtk
          return false;
 
       iterator_type_ptr itr = token_list;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t2)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t3)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t4)) return false;
-      return true;
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      return string_to_type_converter((*itr).first,(*itr).second,t4);
    }
 
    template <typename InputIterator,
@@ -8250,7 +8519,7 @@ namespace strtk
       typedef iterator_type* iterator_type_ptr;
       iterator_type token_list[token_count];
       const std::size_t parsed_token_count = split_n(delimiters,
-                                                     begin,end,
+                                                     begin, end,
                                                      token_count,
                                                      token_list,
                                                      split_options::compress_delimiters);
@@ -8259,10 +8528,9 @@ namespace strtk
          return false;
 
       iterator_type_ptr itr = token_list;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t2)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t3)) return false;
-      return true;
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      return string_to_type_converter((*itr).first,(*itr).second,t3);
    }
 
    template <typename InputIterator, typename T1, typename T2>
@@ -8279,7 +8547,7 @@ namespace strtk
       iterator_type token_list[token_count];
 
       const std::size_t parsed_token_count = split_n(delimiters,
-                                                     begin,end,
+                                                     begin, end,
                                                      token_count,
                                                      token_list,
                                                      split_options::compress_delimiters);
@@ -8287,9 +8555,9 @@ namespace strtk
          return false;
 
       iterator_type_ptr itr = token_list;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t2)) return false;
-      return true;
+      strtk_cmpstmt(1)
+      return string_to_type_converter((*itr).first,(*itr).second,t2);
+      #undef strtk_cmpstmt
    }
 
    template <typename InputIterator, typename T>
@@ -8306,7 +8574,7 @@ namespace strtk
       iterator_type token_list[token_count];
 
       const std::size_t parsed_token_count = split_n(delimiters,
-                                                     begin,end,
+                                                     begin, end,
                                                      token_count,
                                                      token_list,
                                                      split_options::compress_delimiters);
@@ -8333,7 +8601,7 @@ namespace strtk
 
       if (1 == delimiters.size())
          return split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-                      begin,end,
+                      begin, end,
                       range_to_type_back_inserter(sequence),
                       split_option);
       else
@@ -8359,12 +8627,12 @@ namespace strtk
 
       if (1 == delimiters.size())
          return split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-                      begin,end,
+                      begin, end,
                       range_to_type_inserter(set),
                       split_option);
       else
          return split(multiple_char_delimiter_predicate(delimiters),
-                      begin,end,
+                      begin, end,
                       range_to_type_inserter(set),
                       split_option);
    }
@@ -8385,12 +8653,12 @@ namespace strtk
 
       if (1 == delimiters.size())
          return split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-                      begin,end,
+                      begin, end,
                       range_to_type_inserter(multiset),
                       split_option);
       else
          return split(multiple_char_delimiter_predicate(delimiters),
-                      begin,end,
+                      begin, end,
                       range_to_type_inserter(multiset),
                       split_option);
    }
@@ -8410,12 +8678,12 @@ namespace strtk
 
       if (1 == delimiters.size())
          return split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-                      begin,end,
+                      begin, end,
                       range_to_type_push_inserter(queue),
                       split_option);
       else
          return split(multiple_char_delimiter_predicate(delimiters),
-                      begin,end,
+                      begin, end,
                       range_to_type_push_inserter(queue),
                       split_option);
    }
@@ -8435,7 +8703,7 @@ namespace strtk
 
       if (1 == delimiters.size())
          return split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-                      begin,end,
+                      begin, end,
                       range_to_type_push_inserter(stack),
                       split_option);
       else
@@ -8461,12 +8729,12 @@ namespace strtk
 
       if (1 == delimiters.size())
          return split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-                      begin,end,
+                      begin, end,
                       range_to_type_push_inserter(priority_queue),
                       split_option);
       else
          return split(multiple_char_delimiter_predicate(delimiters),
-                      begin,end,
+                      begin, end,
                       range_to_type_push_inserter(priority_queue),
                       split_option);
    }
@@ -8669,7 +8937,7 @@ namespace strtk
             bool add_impl(const itr_type begin, const itr_type end) const
             {
                T t;
-               if (!string_to_type_converter(begin,end,t)) return false;
+               if (!string_to_type_converter(begin, end, t)) return false;
                sequence_.push_back(t);
                return true;
             }
@@ -8696,7 +8964,7 @@ namespace strtk
             bool add_impl(const itr_type begin, const itr_type end) const
             {
                T t;
-               if (!string_to_type_converter(begin,end,t)) return false;
+               if (!string_to_type_converter(begin, end, t)) return false;
                set_.insert(t);
                return true;
             }
@@ -8722,7 +8990,7 @@ namespace strtk
             bool add_impl(const itr_type begin, const itr_type end) const
             {
                T t;
-               if (!string_to_type_converter(begin,end,t)) return false;
+               if (!string_to_type_converter(begin, end, t)) return false;
                pq_.push(t);
                return true;
             }
@@ -8748,7 +9016,7 @@ namespace strtk
             bool add_impl(const itr_type begin, const itr_type end) const
             {
                T t;
-               if (!string_to_type_converter(begin,end,t)) return false;
+               if (!string_to_type_converter(begin, end, t)) return false;
                container_.push(t);
                return true;
             }
@@ -8863,29 +9131,35 @@ namespace strtk
 
       if (1 == delimiters.size())
          split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
       else
          split(multiple_char_delimiter_predicate(delimiters),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
 
       if (token_list.size() < 12) return false;
 
       iterator_type_ptr itr = token_list.begin();
-      if (!string_to_type_converter((*itr).first,(*itr).second, t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t2)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t3)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t4)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t5)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t6)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t7)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t8)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t9)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t10)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t11)) return false; ++itr;
+
+      #define strtk_cmpstmt(N)                                         \
+      if (!string_to_type_converter((*itr).first,(*itr).second, t##N)) \
+         return false;                                                 \
+      ++itr;                                                           \
+
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      strtk_cmpstmt( 4)
+      strtk_cmpstmt( 5)
+      strtk_cmpstmt( 6)
+      strtk_cmpstmt( 7)
+      strtk_cmpstmt( 8)
+      strtk_cmpstmt( 9)
+      strtk_cmpstmt(10)
+      strtk_cmpstmt(11)
       return ca(itr,token_list.end());
    }
 
@@ -8909,28 +9183,28 @@ namespace strtk
 
       if (1 == delimiters.size())
          split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
       else
          split(multiple_char_delimiter_predicate(delimiters),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
 
       if (token_list.size() < 11) return false;
 
       iterator_type_ptr itr = token_list.begin();
-      if (!string_to_type_converter((*itr).first,(*itr).second, t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t2)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t3)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t4)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t5)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t6)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t7)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t8)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second, t9)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t10)) return false; ++itr;
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      strtk_cmpstmt( 4)
+      strtk_cmpstmt( 5)
+      strtk_cmpstmt( 6)
+      strtk_cmpstmt( 7)
+      strtk_cmpstmt( 8)
+      strtk_cmpstmt( 9)
+      strtk_cmpstmt(10)
       return ca(itr,token_list.end());
    }
 
@@ -8953,27 +9227,27 @@ namespace strtk
 
       if (1 == delimiters.size())
          split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
       else
          split(multiple_char_delimiter_predicate(delimiters),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
 
       if (token_list.size() < 10) return false;
 
       iterator_type_ptr itr = token_list.begin();
-      if (!string_to_type_converter((*itr).first,(*itr).second,t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t2)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t3)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t4)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t5)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t6)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t7)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t8)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t9)) return false; ++itr;
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      strtk_cmpstmt( 4)
+      strtk_cmpstmt( 5)
+      strtk_cmpstmt( 6)
+      strtk_cmpstmt( 7)
+      strtk_cmpstmt( 8)
+      strtk_cmpstmt( 9)
       return ca(itr,token_list.end());
    }
 
@@ -8996,26 +9270,26 @@ namespace strtk
 
       if (1 == delimiters.size())
          split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
       else
          split(multiple_char_delimiter_predicate(delimiters),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
 
       if (token_list.size() < 9) return false;
 
       iterator_type_ptr itr = token_list.begin();
-      if (!string_to_type_converter((*itr).first,(*itr).second,t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t2)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t3)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t4)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t5)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t6)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t7)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t8)) return false; ++itr;
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      strtk_cmpstmt( 4)
+      strtk_cmpstmt( 5)
+      strtk_cmpstmt( 6)
+      strtk_cmpstmt( 7)
+      strtk_cmpstmt( 8)
       return ca(itr,token_list.end());
    }
 
@@ -9037,25 +9311,25 @@ namespace strtk
 
       if (1 == delimiters.size())
          split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
       else
          split(multiple_char_delimiter_predicate(delimiters),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
 
       if (token_list.size() < 8) return false;
 
       iterator_type_ptr itr = token_list.begin();
-      if (!string_to_type_converter((*itr).first,(*itr).second,t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t2)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t3)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t4)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t5)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t6)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t7)) return false; ++itr;
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      strtk_cmpstmt( 4)
+      strtk_cmpstmt( 5)
+      strtk_cmpstmt( 6)
+      strtk_cmpstmt( 7)
       return ca(itr,token_list.end());
    }
 
@@ -9077,24 +9351,24 @@ namespace strtk
 
       if (1 == delimiters.size())
          split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
       else
          split(multiple_char_delimiter_predicate(delimiters),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
 
       if (token_list.size() < 7) return false;
 
       iterator_type_ptr itr = token_list.begin();
-      if (!string_to_type_converter((*itr).first,(*itr).second,t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t2)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t3)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t4)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t5)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t6)) return false; ++itr;
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      strtk_cmpstmt( 4)
+      strtk_cmpstmt( 5)
+      strtk_cmpstmt( 6)
       return ca(itr,token_list.end());
    }
 
@@ -9116,23 +9390,23 @@ namespace strtk
 
       if (1 == delimiters.size())
          split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
       else
          split(multiple_char_delimiter_predicate(delimiters),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
 
       if (token_list.size() < 6) return false;
 
       iterator_type_ptr itr = token_list.begin();
-      if (!string_to_type_converter((*itr).first,(*itr).second,t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t2)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t3)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t4)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t5)) return false; ++itr;
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      strtk_cmpstmt( 4)
+      strtk_cmpstmt( 5)
       return ca(itr,token_list.end());
    }
 
@@ -9153,22 +9427,22 @@ namespace strtk
 
       if (1 == delimiters.size())
          split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
       else
         split(multiple_char_delimiter_predicate(delimiters),
-              begin,end,
+              begin, end,
               std::back_inserter(token_list),
               split_options::compress_delimiters);
 
       if (token_list.size() < 5) return false;
 
       iterator_type_ptr itr = token_list.begin();
-      if (!string_to_type_converter((*itr).first,(*itr).second,t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t2)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t3)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t4)) return false; ++itr;
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
+      strtk_cmpstmt( 4)
       return ca(itr,token_list.end());
    }
 
@@ -9189,21 +9463,21 @@ namespace strtk
 
       if (1 == delimiters.size())
          split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
       else
          split(multiple_char_delimiter_predicate(delimiters),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
 
       if (token_list.size() < 4) return false;
 
       iterator_type_ptr itr = token_list.begin();
-      if (!string_to_type_converter((*itr).first,(*itr).second,t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t2)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t3)) return false; ++itr;
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
+      strtk_cmpstmt( 3)
       return ca(itr,token_list.end());
    }
 
@@ -9224,19 +9498,19 @@ namespace strtk
 
       if (1 == delimiters.size())
          split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
       else
          split(multiple_char_delimiter_predicate(delimiters),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
 
       if (token_list.size() < 3) return false;
       iterator_type_ptr itr = token_list.begin();
-      if (!string_to_type_converter((*itr).first,(*itr).second,t1)) return false; ++itr;
-      if (!string_to_type_converter((*itr).first,(*itr).second,t2)) return false; ++itr;
+      strtk_cmpstmt( 1)
+      strtk_cmpstmt( 2)
       return ca(itr,token_list.end());
    }
 
@@ -9256,20 +9530,21 @@ namespace strtk
 
       if (1 == delimiters.size())
          split(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
       else
          split(multiple_char_delimiter_predicate(delimiters),
-               begin,end,
+               begin, end,
                std::back_inserter(token_list),
                split_options::compress_delimiters);
 
       if (token_list.size() < 2) return false;
 
       iterator_type_ptr itr = token_list.begin();
-      if (!string_to_type_converter((*itr).first,(*itr).second,t1)) return false; ++itr;
+      strtk_cmpstmt( 1)
       return ca(itr,token_list.end());
+      #undef strtk_cmpstmt
    }
 
    template <typename InputIterator,
@@ -9290,13 +9565,13 @@ namespace strtk
 
       if (1 == delimiters.size())
          split_n(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-                 begin,end,
+                 begin, end,
                  n,
                  range_to_type_back_inserter(sequence),
                  split_option);
       else
          split_n(multiple_char_delimiter_predicate(delimiters),
-                 begin,end,
+                 begin, end,
                  n,
                  range_to_type_back_inserter(sequence),
                  split_option);
@@ -9322,13 +9597,13 @@ namespace strtk
 
       if (1 == delimiters.size())
          split_n(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-                 begin,end,
+                 begin, end,
                  n,
                  range_to_type_inserter(set),
                  split_option);
       else
          split_n(multiple_char_delimiter_predicate(delimiters),
-                 begin,end,
+                 begin, end,
                  n,
                  range_to_type_inserter(set),
                  split_option);
@@ -9354,13 +9629,13 @@ namespace strtk
 
       if (1 == delimiters.size())
          split_n(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-                 begin,end,
+                 begin, end,
                  n,
                  range_to_type_inserter(multiset),
                  split_option);
       else
          split_n(multiple_char_delimiter_predicate(delimiters),
-                 begin,end,
+                 begin, end,
                  n,
                  range_to_type_inserter(multiset),
                  split_option);
@@ -9385,13 +9660,13 @@ namespace strtk
 
       if (1 == delimiters.size())
          split_n(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-                 begin,end,
+                 begin, end,
                  n,
                  range_to_type_push_inserter(queue),
                  split_option);
       else
          split_n(multiple_char_delimiter_predicate(delimiters),
-                 begin,end,
+                 begin, end,
                  n,
                  range_to_type_push_inserter(queue),
                  split_option);
@@ -9416,13 +9691,13 @@ namespace strtk
 
       if (1 == delimiters.size())
          split_n(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-                 begin,end,
+                 begin, end,
                  n,
                  range_to_type_push_inserter(stack),
                  split_option);
       else
          split_n(multiple_char_delimiter_predicate(delimiters),
-                 begin,end,
+                 begin, end,
                  n,
                  range_to_type_push_inserter(stack),
                  split_option);
@@ -9448,13 +9723,13 @@ namespace strtk
 
       if (1 == delimiters.size())
          split_n(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-                 begin,end,
+                 begin, end,
                  n,
                  range_to_type_push_inserter(priority_queue),
                  split_option);
       else
          split_n(multiple_char_delimiter_predicate(delimiters),
-                 begin,end,
+                 begin, end,
                  n,
                  range_to_type_push_inserter(priority_queue),
                  split_option);
@@ -9478,13 +9753,13 @@ namespace strtk
 
       if (1 == delimiters.size())
          split_n(single_delimiter_predicate<std::string::value_type>(delimiters[0]),
-                 begin,end,
+                 begin, end,
                  n,
                  range_to_ptr_type(out,insert_count),
                  split_option);
       else
          split_n(multiple_char_delimiter_predicate(delimiters),
-                 begin,end,
+                 begin, end,
                  n,
                  range_to_ptr_type(out,insert_count),
                  split_option);
@@ -9568,8 +9843,76 @@ namespace strtk
       return parse(range.first,range.second,delimiters,n,priority_queue,split_option);
    }
 
-   template <typename T1, typename T2, typename T3, typename  T4,
-             typename T5, typename T6, typename T7, typename  T8,
+   template <typename T1 , typename T2 , typename T3 , typename  T4,
+             typename T5 , typename T6 , typename T7 , typename  T8,
+             typename T9 , typename T10, typename T11, typename T12,
+             typename T13, typename T14, typename T15, typename T16>
+   inline bool parse(const std::string& data,
+                     const std::string& delimiters,
+                     T1&  t1 ,  T2&  t2,  T3&  t3,  T4&  t4,
+                     T5&  t5 ,  T6&  t6,  T7&  t7,  T8&  t8,
+                     T9&  t9 , T10& t10, T11& t11, T12& t12,
+                     T13& t13, T14& t14, T15& t15, T16& t16)
+   {
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
+                   delimiters,
+                   t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15,
+                   typename details::ca_type<T16, typename details::is_stl_container<T12>::result_t>::type(t16));
+   }
+
+   template <typename T1 , typename T2 , typename T3 , typename  T4,
+             typename T5 , typename T6 , typename T7 , typename  T8,
+             typename T9 , typename T10, typename T11, typename T12,
+             typename T13, typename T14, typename T15>
+   inline bool parse(const std::string& data,
+                     const std::string& delimiters,
+                     T1&  t1 ,  T2&  t2,  T3&  t3,  T4&  t4,
+                     T5&  t5 ,  T6&  t6,  T7&  t7,  T8&  t8,
+                     T9&  t9 , T10& t10, T11& t11, T12& t12,
+                     T13& t13, T14& t14, T15& t15)
+   {
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
+                   delimiters,
+                   t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,
+                   typename details::ca_type<T15, typename details::is_stl_container<T12>::result_t>::type(t15));
+   }
+
+   template <typename T1 , typename T2 , typename T3 , typename  T4,
+             typename T5 , typename T6 , typename T7 , typename  T8,
+             typename T9 , typename T10, typename T11, typename T12,
+             typename T13, typename T14>
+   inline bool parse(const std::string& data,
+                     const std::string& delimiters,
+                     T1&  t1 ,  T2&  t2,  T3&  t3,  T4&  t4,
+                     T5&  t5 ,  T6&  t6,  T7&  t7,  T8&  t8,
+                     T9&  t9 , T10& t10, T11& t11, T12& t12,
+                     T13& t13, T14& t14)
+   {
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
+                   delimiters,
+                   t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,
+                   typename details::ca_type<T14, typename details::is_stl_container<T12>::result_t>::type(t14));
+   }
+
+   template <typename T1 , typename T2 , typename T3 , typename  T4,
+             typename T5 , typename T6 , typename T7 , typename  T8,
+             typename T9 , typename T10, typename T11, typename T12,
+             typename T13>
+   inline bool parse(const std::string& data,
+                     const std::string& delimiters,
+                     T1&  t1 ,  T2&  t2,  T3&  t3,  T4&  t4,
+                     T5&  t5 ,  T6&  t6,  T7&  t7,  T8&  t8,
+                     T9&  t9 , T10& t10, T11& t11, T12& t12,
+                     T13& t13)
+   {
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
+                   delimiters,
+                   t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,
+                   typename details::ca_type<T13, typename details::is_stl_container<T12>::result_t>::type(t13));
+   }
+
+   template <typename T1, typename T2 , typename T3 , typename  T4,
+             typename T5, typename T6 , typename T7 , typename  T8,
              typename T9, typename T10, typename T11, typename T12>
    inline bool parse(const std::string& data,
                      const std::string& delimiters,
@@ -9577,8 +9920,7 @@ namespace strtk
                      T5& t5,  T6&  t6,  T7&  t7,  T8&  t8,
                      T9& t9, T10& t10, T11& t11, T12& t12)
    {
-      return parse(data.data(),
-                   data.data() + data.size(),
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
                    delimiters,
                    t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,
                    typename details::ca_type<T12, typename details::is_stl_container<T12>::result_t>::type(t12));
@@ -9593,8 +9935,7 @@ namespace strtk
                      T5& t5, T6&   t6,  T7&  t7, T8& t8,
                      T9& t9, T10& t10, T11& t11)
    {
-      return parse(data.data(),
-                   data.data() + data.size(),
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
                    delimiters,
                    t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,
                    typename details::ca_type<T11, typename details::is_stl_container<T11>::result_t>::type(t11));
@@ -9609,8 +9950,7 @@ namespace strtk
                      T5& t5, T6& t6, T7& t7, T8& t8,
                      T9& t9, T10& t10)
    {
-      return parse(data.data(),
-                   data.data() + data.size(),
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
                    delimiters,
                    t1,t2,t3,t4,t5,t6,t7,t8,t9,
                    typename details::ca_type<T10, typename details::is_stl_container<T10>::result_t>::type(t10));
@@ -9625,8 +9965,7 @@ namespace strtk
                      T5& t5, T6& t6, T7& t7, T8& t8,
                      T9& t9)
    {
-      return parse(data.data(),
-                   data.data() + data.size(),
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
                    delimiters,
                    t1,t2,t3,t4,t5,t6,t7,t8,
                    typename details::ca_type<T9, typename details::is_stl_container<T9>::result_t>::type(t9));
@@ -9639,8 +9978,7 @@ namespace strtk
                      T1& t1, T2& t2, T3& t3, T4& t4,
                      T5& t5, T6& t6, T7& t7, T8& t8)
    {
-      return parse(data.data(),
-                   data.data() + data.size(),
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
                    delimiters,
                    t1,t2,t3,t4,t5,t6,t7,
                    typename details::ca_type<T8, typename details::is_stl_container<T8>::result_t>::type(t8));
@@ -9653,8 +9991,7 @@ namespace strtk
                      T1& t1, T2& t2, T3& t3, T4& t4,
                      T5& t5, T6& t6, T7& t7)
    {
-      return parse(data.data(),
-                   data.data() + data.size(),
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
                    delimiters,
                    t1,t2,t3,t4,t5,t6,
                    typename details::ca_type<T7, typename details::is_stl_container<T7>::result_t>::type(t7));
@@ -9667,8 +10004,7 @@ namespace strtk
                      T1& t1, T2& t2, T3& t3, T4& t4,
                      T5& t5, T6& t6)
    {
-      return parse(data.data(),
-                   data.data() + data.size(),
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
                    delimiters,
                    t1,t2,t3,t4,t5,
                    typename details::ca_type<T6,typename details::is_stl_container<T6>::result_t>::type(t6));
@@ -9681,8 +10017,7 @@ namespace strtk
                      T1& t1, T2& t2, T3& t3, T4& t4,
                      T5& t5)
    {
-      return parse(data.data(),
-                   data.data() + data.size(),
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
                    delimiters,
                    t1,t2,t3,t4,
                    typename details::ca_type<T5, typename details::is_stl_container<T5>::result_t>::type(t5));
@@ -9693,8 +10028,7 @@ namespace strtk
                      const std::string& delimiters,
                      T1& t1, T2& t2, T3& t3, T4& t4)
    {
-      return parse(data.data(),
-                   data.data() + data.size(),
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
                    delimiters,
                    t1,t2,t3,
                    typename details::ca_type<T4, typename details::is_stl_container<T4>::result_t>::type(t4));
@@ -9705,8 +10039,7 @@ namespace strtk
                      const std::string& delimiters,
                      T1& t1, T2& t2, T3& t3)
    {
-      return parse(data.data(),
-                   data.data() + data.size(),
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
                    delimiters,
                    t1,t2,
                    typename details::ca_type<T3, typename details::is_stl_container<T3>::result_t>::type(t3));
@@ -9717,8 +10050,7 @@ namespace strtk
                      const std::string& delimiters,
                      T1& t1, T2& t2)
    {
-      return parse(data.data(),
-                   data.data() + data.size(),
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
                    delimiters,
                    t1,
                    typename details::ca_type<T2, typename details::is_stl_container<T2>::result_t>::type(t2));
@@ -9729,8 +10061,7 @@ namespace strtk
                      const std::string& delimiters,
                      T& t)
    {
-      return parse(data.data(),
-                   data.data() + data.size(),
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
                    delimiters,
                    typename details::ca_type<T,typename details::is_stl_container<T>::result_t>::type(t));
    }
@@ -9743,8 +10074,7 @@ namespace strtk
                             Sequence<T,Allocator>& sequence,
                             const split_options::type& split_option = split_options::compress_delimiters)
    {
-      return parse(data.data(),
-                   data.data() + data.size(),
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
                    delimiters,
                    sequence,
                    split_option);
@@ -9758,8 +10088,7 @@ namespace strtk
                             std::set<T,Comparator,Allocator>& set,
                             const split_options::type& split_option = split_options::compress_delimiters)
    {
-      return parse(data.data(),
-                   data.data() + data.size(),
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
                    delimiters,
                    set,
                    split_option);
@@ -9773,8 +10102,7 @@ namespace strtk
                             std::multiset<T,Comparator,Allocator>& multiset,
                             const split_options::type& split_option = split_options::compress_delimiters)
    {
-      return parse(data.data(),
-                   data.data() + data.size(),
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
                    delimiters,
                    multiset,
                    split_option);
@@ -9787,8 +10115,7 @@ namespace strtk
                             std::queue<T,Container>& queue,
                             const split_options::type& split_option = split_options::compress_delimiters)
    {
-      return parse(data.data(),
-                   data.data() + data.size(),
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
                    delimiters,
                    queue,
                    split_option);
@@ -9801,8 +10128,7 @@ namespace strtk
                             std::stack<T,Container>& stack,
                             const split_options::type& split_option = split_options::compress_delimiters)
    {
-      return parse(data.data(),
-                   data.data() + data.size(),
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
                    delimiters,
                    stack,
                    split_option);
@@ -9816,8 +10142,7 @@ namespace strtk
                             std::priority_queue<T,Container,Comparator>& priority_queue,
                             const split_options::type& split_option = split_options::compress_delimiters)
    {
-      return parse(data.data(),
-                   data.data() + data.size(),
+      return parse(to_ptr(data), to_ptr(data) + data.size(),
                    delimiters,
                    priority_queue,
                    split_option);
@@ -9859,15 +10184,21 @@ namespace strtk
    {
       if (9 != argc) return 0;
       std::size_t result = 0;
-      if (!string_to_type_converter(std::string(argv[0]),t1)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[1]),t2)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[2]),t3)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[3]),t4)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[4]),t5)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[5]),t6)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[6]),t7)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[7]),t8)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[8]),t9)) return result; ++result;
+
+      #define strtk_cmpstmt(N)                                  \
+      if (!string_to_type_converter(std::string(argv[N]),t##N)) \
+         return result;                                         \
+      ++result;                                                 \
+
+      strtk_cmpstmt(1)
+      strtk_cmpstmt(2)
+      strtk_cmpstmt(3)
+      strtk_cmpstmt(4)
+      strtk_cmpstmt(5)
+      strtk_cmpstmt(6)
+      strtk_cmpstmt(7)
+      strtk_cmpstmt(8)
+      strtk_cmpstmt(9)
       return result;
    }
 
@@ -9880,14 +10211,14 @@ namespace strtk
    {
       if (8 != argc) return 0;
       std::size_t result = 0;
-      if (!string_to_type_converter(std::string(argv[0]),t1)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[1]),t2)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[2]),t3)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[3]),t4)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[4]),t5)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[5]),t6)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[6]),t7)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[7]),t8)) return result; ++result;
+      strtk_cmpstmt(1)
+      strtk_cmpstmt(2)
+      strtk_cmpstmt(3)
+      strtk_cmpstmt(4)
+      strtk_cmpstmt(5)
+      strtk_cmpstmt(6)
+      strtk_cmpstmt(7)
+      strtk_cmpstmt(8)
       return result;
    }
 
@@ -9900,13 +10231,13 @@ namespace strtk
    {
       if (7 != argc) return 0;
       std::size_t result = 0;
-      if (!string_to_type_converter(std::string(argv[0]),t1)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[1]),t2)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[2]),t3)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[3]),t4)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[4]),t5)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[5]),t6)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[6]),t7)) return result; ++result;
+      strtk_cmpstmt(1)
+      strtk_cmpstmt(2)
+      strtk_cmpstmt(3)
+      strtk_cmpstmt(4)
+      strtk_cmpstmt(5)
+      strtk_cmpstmt(6)
+      strtk_cmpstmt(7)
       return result;
    }
 
@@ -9919,12 +10250,12 @@ namespace strtk
    {
       if (6 != argc) return 0;
       std::size_t result = 0;
-      if (!string_to_type_converter(std::string(argv[0]),t1)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[1]),t2)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[2]),t3)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[3]),t4)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[4]),t5)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[5]),t6)) return result; ++result;
+      strtk_cmpstmt(1)
+      strtk_cmpstmt(2)
+      strtk_cmpstmt(3)
+      strtk_cmpstmt(4)
+      strtk_cmpstmt(5)
+      strtk_cmpstmt(6)
       return result;
    }
 
@@ -9934,11 +10265,11 @@ namespace strtk
    {
       if (5 != argc) return 0;
       std::size_t result = 0;
-      if (!string_to_type_converter(std::string(argv[0]),t1)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[1]),t2)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[2]),t3)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[3]),t4)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[4]),t5)) return result; ++result;
+      strtk_cmpstmt(1)
+      strtk_cmpstmt(2)
+      strtk_cmpstmt(3)
+      strtk_cmpstmt(4)
+      strtk_cmpstmt(5)
       return result;
    }
 
@@ -9948,10 +10279,10 @@ namespace strtk
    {
       if (4 != argc) return 0;
       std::size_t result = 0;
-      if (!string_to_type_converter(std::string(argv[0]),t1)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[1]),t2)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[2]),t3)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[3]),t4)) return result; ++result;
+      strtk_cmpstmt(1)
+      strtk_cmpstmt(2)
+      strtk_cmpstmt(3)
+      strtk_cmpstmt(4)
       return result;
    }
 
@@ -9961,9 +10292,9 @@ namespace strtk
    {
       if (3 != argc) return 0;
       std::size_t result = 0;
-      if (!string_to_type_converter(std::string(argv[0]),t1)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[1]),t2)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[2]),t3)) return result; ++result;
+      strtk_cmpstmt(1)
+      strtk_cmpstmt(2)
+      strtk_cmpstmt(3)
       return result;
    }
 
@@ -9973,8 +10304,8 @@ namespace strtk
    {
       if (2 != argc) return 0;
       std::size_t result = 0;
-      if (!string_to_type_converter(std::string(argv[0]),t1)) return result; ++result;
-      if (!string_to_type_converter(std::string(argv[1]),t2)) return result; ++result;
+      strtk_cmpstmt(1)
+      strtk_cmpstmt(2)
       return result;
    }
 
@@ -9984,8 +10315,9 @@ namespace strtk
    {
       if (1 != argc) return 0;
       std::size_t result = 0;
-      if (!string_to_type_converter(std::string(argv[0]),t1)) return result; ++result;
+      strtk_cmpstmt(1)
       return result;
+      #undef strtk_cmpstmt
    }
 
    #define strtk_parse_begin(Type)                                            \
@@ -10014,8 +10346,7 @@ namespace strtk
                               Sequence<T,Allocator>& sequence,
                               const split_options::type& split_option = split_options::compress_delimiters)
    {
-      return parse_n(data.data(),
-                     data.data() + data.size(),
+      return parse_n(to_ptr(data), to_ptr(data) + data.size(),
                      delimiters,
                      n,
                      sequence,
@@ -10031,8 +10362,7 @@ namespace strtk
                               std::set<T,Comparator,Allocator>& set,
                               const split_options::type& split_option = split_options::compress_delimiters)
    {
-      return parse_n(data.data(),
-                     data.data() + data.size(),
+      return parse_n(to_ptr(data), to_ptr(data) + data.size(),
                      delimiters,
                      n,
                      set,
@@ -10048,8 +10378,7 @@ namespace strtk
                               std::multiset<T,Comparator,Allocator>& multiset,
                               const split_options::type& split_option = split_options::compress_delimiters)
    {
-      return parse_n(data.data(),
-                     data.data() + data.size(),
+      return parse_n(to_ptr(data), to_ptr(data) + data.size(),
                      delimiters,
                      n,
                      multiset,
@@ -10064,8 +10393,7 @@ namespace strtk
                               std::queue<T,Container>& queue,
                               const split_options::type& split_option = split_options::compress_delimiters)
    {
-      return parse_n(data.data(),
-                     data.data() + data.size(),
+      return parse_n(to_ptr(data), to_ptr(data) + data.size(),
                      delimiters,
                      n,
                      queue,
@@ -10080,8 +10408,7 @@ namespace strtk
                               std::stack<T,Container>& stack,
                               const split_options::type& split_option = split_options::compress_delimiters)
    {
-      return parse_n(data.data(),
-                     data.data() + data.size(),
+      return parse_n(to_ptr(data), to_ptr(data) + data.size(),
                      delimiters,
                      n,
                      stack,
@@ -10097,8 +10424,7 @@ namespace strtk
                               std::priority_queue<T,Container,Comparator>& priority_queue,
                               const split_options::type& split_option = split_options::compress_delimiters)
    {
-      return parse_n(data.data(),
-                     data.data() + data.size(),
+      return parse_n(to_ptr(data), to_ptr(data) + data.size(),
                      delimiters,
                      n,
                      priority_queue,
@@ -10112,8 +10438,7 @@ namespace strtk
                               T* out,
                               const split_options::type& split_option = split_options::compress_delimiters)
    {
-      return parse_n(data.data(),
-                     data.data() + data.size(),
+      return parse_n(to_ptr(data), to_ptr(data) + data.size(),
                      delimiters,
                      n,
                      out,
@@ -10136,8 +10461,7 @@ namespace strtk
          return false;
       if (data.empty() || delimiters.empty())
          return false;
-      return strtk::parse(data.data(),
-                          data.data() + data.size(),
+      return strtk::parse(to_ptr(data), to_ptr(data) + data.size(),
                           delimiters,
                           t1,t2,t3,t4,t5,t6,
                           t7,t8,t9,t10,t11,t12);
@@ -10159,8 +10483,7 @@ namespace strtk
          return false;
       if (data.empty() || delimiters.empty())
          return false;
-      return strtk::parse(data.data(),
-                          data.data() + data.size(),
+      return strtk::parse(to_ptr(data), to_ptr(data) + data.size(),
                           delimiters,
                           t1,t2,t3,t4,t5,t6,
                           t7,t8,t9,t10,t11);
@@ -10182,8 +10505,7 @@ namespace strtk
          return false;
       if (data.empty() || delimiters.empty())
          return false;
-      return strtk::parse(data.data(),
-                          data.data() + data.size(),
+      return strtk::parse(to_ptr(data), to_ptr(data) + data.size(),
                           delimiters,
                           t1,t2,t3,t4,t5,t6,
                           t7,t8,t9,t10);
@@ -10205,8 +10527,7 @@ namespace strtk
          return false;
       if (data.empty() || delimiters.empty())
          return false;
-      return strtk::parse(data.data(),
-                          data.data() + data.size(),
+      return strtk::parse(to_ptr(data), to_ptr(data) + data.size(),
                           delimiters,
                           t1,t2,t3,t4,t5,t6,
                           t7,t8,t9);
@@ -10227,8 +10548,7 @@ namespace strtk
          return false;
       if (data.empty() || delimiters.empty())
          return false;
-      return strtk::parse(data.data(),
-                          data.data() + data.size(),
+      return strtk::parse(to_ptr(data), to_ptr(data) + data.size(),
                           delimiters,
                           t1,t2,t3,t4,t5,t6,
                           t7,t8);
@@ -10249,8 +10569,7 @@ namespace strtk
          return false;
       if (data.empty() || delimiters.empty())
          return false;
-      return strtk::parse(data.data(),
-                          data.data() + data.size(),
+      return strtk::parse(to_ptr(data), to_ptr(data) + data.size(),
                           delimiters,
                           t1,t2,t3,t4,t5,t6,t7);
    }
@@ -10269,8 +10588,7 @@ namespace strtk
          return false;
       if (data.empty() || delimiters.empty())
          return false;
-      return strtk::parse(data.data(),
-                          data.data() + data.size(),
+      return strtk::parse(to_ptr(data), to_ptr(data) + data.size(),
                           delimiters,
                           t1,t2,t3,t4,t5,t6);
    }
@@ -10289,8 +10607,7 @@ namespace strtk
          return false;
       if (data.empty() || delimiters.empty())
          return false;
-      return strtk::parse(data.data(),
-                          data.data() + data.size(),
+      return strtk::parse(to_ptr(data), to_ptr(data) + data.size(),
                           delimiters,
                           t1,t2,t3,t4,t5);
    }
@@ -10308,8 +10625,7 @@ namespace strtk
          return false;
       if (data.empty() || delimiters.empty())
          return false;
-      return strtk::parse(data.data(),
-                          data.data() + data.size(),
+      return strtk::parse(to_ptr(data), to_ptr(data) + data.size(),
                           delimiters,
                           t1,t2,t3,t4);
    }
@@ -10327,8 +10643,7 @@ namespace strtk
          return false;
       if (data.empty() || delimiters.empty())
          return false;
-      return strtk::parse(data.data(),
-                          data.data() + data.size(),
+      return strtk::parse(to_ptr(data), to_ptr(data) + data.size(),
                           delimiters,
                           t1,t2,t3);
    }
@@ -10346,8 +10661,7 @@ namespace strtk
          return false;
       if (data.empty() || delimiters.empty())
          return false;
-      return strtk::parse(data.data(),
-                          data.data() + data.size(),
+      return strtk::parse(to_ptr(data), to_ptr(data) + data.size(),
                           delimiters,
                           t1,t2);
    }
@@ -10365,8 +10679,7 @@ namespace strtk
          return false;
       if (data.empty() || delimiters.empty())
          return false;
-      return strtk::parse(data.data(),
-                          data.data() + data.size(),
+      return strtk::parse(to_ptr(data), to_ptr(data) + data.size(),
                           delimiters,
                           t1);
    }
@@ -10387,8 +10700,7 @@ namespace strtk
          return 0;
       if (data.empty() || delimiters.empty())
          return false;
-      return strtk::parse(data.data(),
-                          data.data() + data.size(),
+      return strtk::parse(to_ptr(data), to_ptr(data) + data.size(),
                           delimiters,
                           sequence,
                           split_option);
@@ -10410,8 +10722,7 @@ namespace strtk
          return 0;
       if (data.empty() || delimiters.empty())
          return false;
-      return strtk::parse(data.data(),
-                          data.data() + data.size(),
+      return strtk::parse(to_ptr(data), to_ptr(data) + data.size(),
                           delimiters,
                           set,
                           split_option);
@@ -10433,8 +10744,7 @@ namespace strtk
          return 0;
       if (data.empty() || delimiters.empty())
          return false;
-      return strtk::parse(data.data(),
-                          data.data() + data.size(),
+      return strtk::parse(to_ptr(data), to_ptr(data) + data.size(),
                           delimiters,
                           multiset,
                           split_option);
@@ -10455,8 +10765,7 @@ namespace strtk
          return 0;
       if (data.empty() || delimiters.empty())
          return false;
-      return strtk::parse(data.data(),
-                          data.data() + data.size(),
+      return strtk::parse(to_ptr(data), to_ptr(data) + data.size(),
                           delimiters,
                           queue,
                           split_option);
@@ -10477,8 +10786,7 @@ namespace strtk
          return 0;
       if (data.empty() || delimiters.empty())
          return false;
-      return strtk::parse(data.data(),
-                          data.data() + data.size(),
+      return strtk::parse(to_ptr(data), to_ptr(data) + data.size(),
                           delimiters,
                           stack,
                           split_option);
@@ -10501,8 +10809,7 @@ namespace strtk
          return 0;
       if (data.empty() || delimiters.empty())
          return false;
-      return strtk::parse(data.data(),
-                          data.data() + data.size(),
+      return strtk::parse(to_ptr(data), to_ptr(data) + data.size(),
                           delimiters,
                           priority_queue,
                           split_option);
@@ -10525,8 +10832,7 @@ namespace strtk
          return 0;
       if (data.empty() || delimiters.empty())
          return 0;
-      return strtk::parse_n(data.data(),
-                            data.data() + data.size(),
+      return strtk::parse_n(to_ptr(data), to_ptr(data) + data.size(),
                             delimiters,
                             n,
                             sequence,
@@ -10550,8 +10856,7 @@ namespace strtk
          return 0;
       if (data.empty() || delimiters.empty())
          return 0;
-      return strtk::parse_n(data.data(),
-                            data.data() + data.size(),
+      return strtk::parse_n(to_ptr(data), to_ptr(data) + data.size(),
                             delimiters,
                             n,
                             set,
@@ -10575,8 +10880,7 @@ namespace strtk
          return 0;
       if (data.empty() || delimiters.empty())
          return 0;
-      return strtk::parse_n(data.data(),
-                            data.data() + data.size(),
+      return strtk::parse_n(to_ptr(data), to_ptr(data) + data.size(),
                             delimiters,
                             n,
                             multiset,
@@ -10599,8 +10903,7 @@ namespace strtk
          return 0;
       if (data.empty() || delimiters.empty())
          return 0;
-      return strtk::parse_n(data.data(),
-                            data.data() + data.size(),
+      return strtk::parse_n(to_ptr(data), to_ptr(data) + data.size(),
                             delimiters,
                             n,
                             queue,
@@ -10623,8 +10926,7 @@ namespace strtk
          return 0;
       if (data.empty() || delimiters.empty())
          return 0;
-      return strtk::parse_n(data.data(),
-                            data.data() + data.size(),
+      return strtk::parse_n(to_ptr(data), to_ptr(data) + data.size(),
                             delimiters,
                             n,
                             stack,
@@ -10649,8 +10951,7 @@ namespace strtk
          return 0;
       if (data.empty() || delimiters.empty())
          return 0;
-      return strtk::parse_n(data.data(),
-                            data.data() + data.size(),
+      return strtk::parse_n(to_ptr(data), to_ptr(data) + data.size(),
                             delimiters,
                             n,
                             priority_queue,
@@ -11734,7 +12035,7 @@ namespace strtk
       for (std::size_t i = 0; i++ < pregen; rng()) ;
       boost::uniform_real<double> dist(0.0,1.0);
       boost::variate_generator<boost::mt19937&, boost::uniform_real<double> > rnd(rng,dist);
-      random_permutation(begin,end,rnd,out);
+      random_permutation(begin, end, rnd, out);
    }
 
    template <typename T,
@@ -11784,7 +12085,7 @@ namespace strtk
       for (std::size_t i = 0; i++ < pregen; rng()) ;
       boost::uniform_real<double> dist(0.0,1.0);
       boost::variate_generator<boost::mt19937&, boost::uniform_real<double> > rnd(rng,dist);
-      random_combination(begin,end,set_size,rnd,out);
+      random_combination(begin, end, set_size, rnd, out);
    }
 
    template <typename T,
@@ -11922,7 +12223,9 @@ namespace strtk
             return true;
          }
       }
+
       std::rotate(first,k,last);
+
       return false;
    }
 
@@ -12457,8 +12760,8 @@ namespace strtk
       explicit inline combination_iterator(const std::size_t& k,
                                            std::string& str,
                                            const bool sorted = true)
-      : begin_(const_cast<char*>(str.data())),
-        end_(const_cast<char*>(str.data() + str.size())),
+      : begin_(const_cast<char*>(to_ptr(str))),
+        end_(const_cast<char*>(to_ptr(str) + str.size())),
         middle_(begin_ + k),
         current_combination_(begin_,middle_)
       {
@@ -12476,7 +12779,7 @@ namespace strtk
       {}
 
       inline combination_iterator(const std::string& str)
-      : begin_(const_cast<char*>(str.data() + str.size())),
+      : begin_(const_cast<char*>(to_ptr(str) + str.size())),
         end_(begin_),
         middle_(end_),
         current_combination_(end_,end_)
@@ -12878,6 +13181,16 @@ namespace strtk
          };
 
          template <typename T, typename Iterator>
+         struct numeric_convert_impl<T,Iterator,20>
+         {
+            static inline void process(const Iterator itr, T& t)
+            {
+               strtk::fast::details::numeric_convert_impl<T,Iterator,19>::process(itr + 1,t);
+               t += static_cast<T>((itr[0] - '0') * 10000000000000000000ULL);
+            }
+         };
+
+         template <typename T, typename Iterator>
          struct numeric_convert_impl<T,Iterator,19>
          {
             static inline void process(const Iterator itr, T& t)
@@ -13220,7 +13533,7 @@ namespace strtk
       template <std::size_t N>
       inline bool all_digits_check(const std::string& s)
       {
-         return all_digits_check<N,const char*>(s.data());
+         return all_digits_check<N,const char*>(to_ptr(s));
       }
 
       template <typename Iterator>
@@ -13228,27 +13541,16 @@ namespace strtk
       {
          switch (n)
          {
-            case  0 : return details::all_digits_check_impl<Iterator, 0>::process(itr);
-            case  1 : return details::all_digits_check_impl<Iterator, 1>::process(itr);
-            case  2 : return details::all_digits_check_impl<Iterator, 2>::process(itr);
-            case  3 : return details::all_digits_check_impl<Iterator, 3>::process(itr);
-            case  4 : return details::all_digits_check_impl<Iterator, 4>::process(itr);
-            case  5 : return details::all_digits_check_impl<Iterator, 5>::process(itr);
-            case  6 : return details::all_digits_check_impl<Iterator, 6>::process(itr);
-            case  7 : return details::all_digits_check_impl<Iterator, 7>::process(itr);
-            case  8 : return details::all_digits_check_impl<Iterator, 8>::process(itr);
-            case  9 : return details::all_digits_check_impl<Iterator, 9>::process(itr);
-            case 10 : return details::all_digits_check_impl<Iterator,10>::process(itr);
-            case 11 : return details::all_digits_check_impl<Iterator,11>::process(itr);
-            case 12 : return details::all_digits_check_impl<Iterator,12>::process(itr);
-            case 13 : return details::all_digits_check_impl<Iterator,13>::process(itr);
-            case 14 : return details::all_digits_check_impl<Iterator,14>::process(itr);
-            case 15 : return details::all_digits_check_impl<Iterator,15>::process(itr);
-            case 16 : return details::all_digits_check_impl<Iterator,16>::process(itr);
-            case 17 : return details::all_digits_check_impl<Iterator,17>::process(itr);
-            case 18 : return details::all_digits_check_impl<Iterator,18>::process(itr);
-            case 19 : return details::all_digits_check_impl<Iterator,19>::process(itr);
+            #define case_stmt(N)                                                      \
+            case N : return details::all_digits_check_impl<Iterator,N>::process(itr); \
+
+            case_stmt( 0) case_stmt( 1) case_stmt( 2) case_stmt( 3)
+            case_stmt( 4) case_stmt( 5) case_stmt( 6) case_stmt( 7)
+            case_stmt( 8) case_stmt( 9) case_stmt(10) case_stmt(11)
+            case_stmt(12) case_stmt(13) case_stmt(14) case_stmt(15)
+            case_stmt(16) case_stmt(17) case_stmt(18) case_stmt(19)
             default : return false;
+            #undef case_stmt
          }
       }
 
@@ -13260,7 +13562,7 @@ namespace strtk
 
       inline bool all_digits_check(const std::string& s)
       {
-         return all_digits_check(s.size(),s.data());
+         return all_digits_check(s.size(), to_ptr(s));
       }
 
       template <std::size_t N, typename Iterator>
@@ -13284,7 +13586,7 @@ namespace strtk
       template <std::size_t N>
       inline bool signed_all_digits_check(const std::string& s)
       {
-         return signed_all_digits_check<N,const char*>(s.data());
+         return signed_all_digits_check<N,const char*>(to_ptr(s));
       }
 
       template <typename Iterator>
@@ -13295,7 +13597,7 @@ namespace strtk
 
       inline bool signed_all_digits_check(const std::string& s)
       {
-         return signed_all_digits_check(s.size(),s.data());
+         return signed_all_digits_check(s.size(), to_ptr(s));
       }
 
       template <std::size_t N, typename T, typename Iterator>
@@ -13318,7 +13620,7 @@ namespace strtk
       template <std::size_t N, typename T>
       inline void numeric_convert(const std::string& s, T& t, const bool digit_check = false)
       {
-         numeric_convert<N,T,const char*>(s.data(),t,digit_check);
+         numeric_convert<N,T,const char*>(to_ptr(s), t, digit_check);
       }
 
       template <typename T, typename Iterator>
@@ -13336,34 +13638,24 @@ namespace strtk
 
          switch (n)
          {
-            case  0 : details::numeric_convert_impl<T,Iterator, 0>::process(itr,t); return true;
-            case  1 : details::numeric_convert_impl<T,Iterator, 1>::process(itr,t); return true;
-            case  2 : details::numeric_convert_impl<T,Iterator, 2>::process(itr,t); return true;
-            case  3 : details::numeric_convert_impl<T,Iterator, 3>::process(itr,t); return true;
-            case  4 : details::numeric_convert_impl<T,Iterator, 4>::process(itr,t); return true;
-            case  5 : details::numeric_convert_impl<T,Iterator, 5>::process(itr,t); return true;
-            case  6 : details::numeric_convert_impl<T,Iterator, 6>::process(itr,t); return true;
-            case  7 : details::numeric_convert_impl<T,Iterator, 7>::process(itr,t); return true;
-            case  8 : details::numeric_convert_impl<T,Iterator, 8>::process(itr,t); return true;
-            case  9 : details::numeric_convert_impl<T,Iterator, 9>::process(itr,t); return true;
-            case 10 : details::numeric_convert_impl<T,Iterator,10>::process(itr,t); return true;
-            case 11 : details::numeric_convert_impl<T,Iterator,11>::process(itr,t); return true;
-            case 12 : details::numeric_convert_impl<T,Iterator,12>::process(itr,t); return true;
-            case 13 : details::numeric_convert_impl<T,Iterator,13>::process(itr,t); return true;
-            case 14 : details::numeric_convert_impl<T,Iterator,14>::process(itr,t); return true;
-            case 15 : details::numeric_convert_impl<T,Iterator,15>::process(itr,t); return true;
-            case 16 : details::numeric_convert_impl<T,Iterator,16>::process(itr,t); return true;
-            case 17 : details::numeric_convert_impl<T,Iterator,17>::process(itr,t); return true;
-            case 18 : details::numeric_convert_impl<T,Iterator,18>::process(itr,t); return true;
-            case 19 : details::numeric_convert_impl<T,Iterator,19>::process(itr,t); return true;
+            #define case_stmt(N)                                                                   \
+            case N : { details::numeric_convert_impl<T,Iterator,N>::process(itr,t); return true; } \
+
+            case_stmt( 0) case_stmt( 1) case_stmt( 2) case_stmt( 3)
+            case_stmt( 4) case_stmt( 5) case_stmt( 6) case_stmt( 7)
+            case_stmt( 8) case_stmt( 9) case_stmt(10) case_stmt(11)
+            case_stmt(12) case_stmt(13) case_stmt(14) case_stmt(15)
+            case_stmt(16) case_stmt(17) case_stmt(18) case_stmt(19)
+            case_stmt(20)
             default : return false;
+            #undef case_stmt
          }
       }
 
       template <typename T>
       inline bool numeric_convert(const std::string& s, T& t, const bool digit_check = false)
       {
-         return numeric_convert(s.size(),s.data(),t,digit_check);
+         return numeric_convert(s.size(), to_ptr(s), t, digit_check);
       }
 
       template <std::size_t N, typename T, typename Iterator>
@@ -13413,7 +13705,7 @@ namespace strtk
                                          T& t,
                                          const bool digit_check = false)
       {
-         return signed_numeric_convert<N,T,const char*>(s.data(),t,digit_check);
+         return signed_numeric_convert<N,T,const char*>(to_ptr(s), t, digit_check);
       }
 
       template <typename T>
@@ -13421,7 +13713,7 @@ namespace strtk
                                          T& t,
                                          const bool digit_check = false)
       {
-         return signed_numeric_convert<T,const char*>(s.data(),s.data() + s.size(),t,digit_check);
+         return signed_numeric_convert<T,const char*>(to_ptr(s), to_ptr(s) + s.size(), t, digit_check);
       }
 
    } // namespace fast
@@ -13434,9 +13726,9 @@ namespace strtk
          namespace details_endian
          {
             #if (defined(__LITTLE_ENDIAN__)) ||  \
-                (defined(WIN32)) ||              \
-                (defined(_WIN32)) ||             \
-                (defined(__WIN32__)) ||          \
+                (defined(WIN32))             ||  \
+                (defined(_WIN32))            ||  \
+                (defined(__WIN32__))         ||  \
                 (defined(__MINGW32_VERSION)) ||  \
                 (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__))
                static const bool __le_result = true;
@@ -13717,7 +14009,7 @@ namespace strtk
             output.resize(length);
             std::copy(buffer_,
                       buffer_ + length,
-                      const_cast<char*>(output.data()));
+                      const_cast<char*>(to_ptr(output)));
 
             buffer_ += length;
             amount_read_sofar_ += length;
@@ -14147,7 +14439,7 @@ namespace strtk
 
          inline bool operator()(const std::string& input)
          {
-            return operator()<const char>(input.data(),static_cast<uint32_t>(input.size()));
+            return operator()<const char>(to_ptr(input),static_cast<uint32_t>(input.size()));
          }
 
          template <typename T,
@@ -14300,7 +14592,7 @@ namespace strtk
                      s = std::string(size - s.size(),padding) + s;
                }
 
-               return operator()<const char>(s.data(),static_cast<uint32_t>(size),false);
+               return operator()<const char>(to_ptr(s), static_cast<uint32_t>(size), false);
             }
             else
                return false;
@@ -14587,7 +14879,7 @@ namespace strtk
 
       inline hex_to_number_sink& operator=(const std::string& s)
       {
-         return this->operator =(std::make_pair(s.data(),s.data() + s.size()));
+         return this->operator =(std::make_pair(to_ptr(s), to_ptr(s) + s.size()));
       }
 
       inline bool valid() const
@@ -14661,17 +14953,17 @@ namespace strtk
 
       inline base64_to_number_sink& operator=(const std::string& s)
       {
-         if (!range_only_contains(base64_value_check(),s.data(),s.data() + s.size()))
+         if (!range_only_contains(base64_value_check(), to_ptr(s), to_ptr(s) + s.size()))
          {
             valid_ = false;
             return (*this);
          }
 
          (*t_) = T(0);
-         convert_base64_to_bin(s.data(),
-                               s.data() + s.size(),
-                               reinterpret_cast<char*>(t_));
+
+         convert_base64_to_bin(to_ptr(s), to_ptr(s) + s.size(), reinterpret_cast<char*>(t_));
          reverse_bytes();
+
          return (*this);
       }
 
@@ -14685,6 +14977,7 @@ namespace strtk
          }
 
          (*t_) = T(0);
+
          convert_base64_to_bin(s.first, s.second,reinterpret_cast<char*>(t_));
          reverse_bytes();
 
@@ -14753,14 +15046,14 @@ namespace strtk
          s_.resize((size - offset) / 2);
          valid_ = convert_hex_to_bin(s.first + offset,
                                      s.second,
-                                     const_cast<char*>(s_.data()));
+                                     const_cast<char*>(to_ptr(s_)));
          return (*this);
       }
 
       inline hex_to_string_sink& operator=(const std::string& s)
       {
-         return this->operator=(std::make_pair<char*>(const_cast<char*>(s.data()),
-                                                      const_cast<char*>(s.data() + s.size())));
+         return this->operator=(std::make_pair<char*>(const_cast<char*>(to_ptr(s)),
+                                                      const_cast<char*>(to_ptr(s) + s.size())));
       }
 
       inline bool valid() const
@@ -14820,7 +15113,7 @@ namespace strtk
 
          typedef typename std::iterator_traits<InputIterator>::value_type value_type;
          const value_type fullstop = value_type('.');
-         InputIterator new_end = std::find(begin,end,fullstop);
+         InputIterator new_end = std::find(begin, end, fullstop);
          return strtk::string_to_type_converter(begin,new_end,(*t_));
       }
 
@@ -14956,7 +15249,7 @@ namespace strtk
                                                    Sequence<T,Allocator>& sequence,
                                                    const split_options::type& split_option = split_options::compress_delimiters)
       {
-         return parse(begin,end,delimiters,sequence,split_option);
+         return parse(begin, end, delimiters, sequence, split_option);
       }
 
       template <typename InputIterator,
@@ -14969,7 +15262,7 @@ namespace strtk
                                                    std::set<T,Comparator,Allocator>& set,
                                                    const split_options::type& split_option = split_options::compress_delimiters)
       {
-         return parse(begin,end,delimiters,set,split_option);
+         return parse(begin, end, delimiters, set, split_option);
       }
 
       template <typename InputIterator,
@@ -14982,7 +15275,7 @@ namespace strtk
                                                    std::multiset<T,Comparator,Allocator>& multiset,
                                                    const split_options::type& split_option = split_options::compress_delimiters)
       {
-         return parse(begin,end,delimiters,multiset,split_option);
+         return parse(begin, end, delimiters, multiset, split_option);
       }
 
       template <typename InputIterator,
@@ -14994,7 +15287,7 @@ namespace strtk
                                                    std::queue<T,Container>& queue,
                                                    const split_options::type& split_option = split_options::compress_delimiters)
       {
-         return parse(begin,end,delimiters,queue,split_option);
+         return parse(begin, end, delimiters, queue, split_option);
       }
 
       template <typename InputIterator,
@@ -15006,7 +15299,7 @@ namespace strtk
                                                    std::stack<T,Container>& stack,
                                                    const split_options::type& split_option = split_options::compress_delimiters)
       {
-         return parse(begin,end,delimiters,stack,split_option);
+         return parse(begin, end, delimiters, stack, split_option);
       }
 
       template <typename InputIterator,
@@ -15019,7 +15312,7 @@ namespace strtk
                                                    std::priority_queue<T,Container,Comparator>& priority_queue,
                                                    const split_options::type& split_option = split_options::compress_delimiters)
       {
-         return parse(begin,end,delimiters,priority_queue,split_option);
+         return parse(begin, end, delimiters, priority_queue, split_option);
       }
 
       template <typename InputIterator,
@@ -15033,7 +15326,7 @@ namespace strtk
                                                      Sequence<T,Allocator>& sequence,
                                                      const split_options::type& split_option = split_options::compress_delimiters)
       {
-         return parse_n(begin,end,delimiters,n,sequence,split_option);
+         return parse_n(begin, end, delimiters, n, sequence, split_option);
       }
 
       template <typename InputIterator,
@@ -15047,7 +15340,7 @@ namespace strtk
                                                      std::set<T,Comparator,Allocator>& set,
                                                      const split_options::type& split_option = split_options::compress_delimiters)
       {
-         return parse_n(begin,end,delimiters,n,set,split_option);
+         return parse_n(begin, end, delimiters, n, set, split_option);
       }
 
       template <typename InputIterator,
@@ -15061,7 +15354,7 @@ namespace strtk
                                                      std::multiset<T,Comparator,Allocator>& multiset,
                                                      const split_options::type& split_option = split_options::compress_delimiters)
       {
-         return parse_n(begin,end,delimiters,n,multiset,split_option);
+         return parse_n(begin, end, delimiters, n, multiset, split_option);
       }
 
       template <typename InputIterator,
@@ -15074,7 +15367,7 @@ namespace strtk
                                                      std::queue<T,Container>& queue,
                                                      const split_options::type& split_option = split_options::compress_delimiters)
       {
-         return parse_n(begin,end,delimiters,n,queue,split_option);
+         return parse_n(begin, end, delimiters, n, queue, split_option);
       }
 
       template <typename InputIterator,
@@ -15087,7 +15380,7 @@ namespace strtk
                                                      std::stack<T,Container>& stack,
                                                      const split_options::type& split_option = split_options::compress_delimiters)
       {
-         return parse_n(begin,end,delimiters,n,stack,split_option);
+         return parse_n(begin, end, delimiters, n, stack, split_option);
       }
 
       template <typename InputIterator,
@@ -15101,7 +15394,7 @@ namespace strtk
                                                      std::priority_queue<T,Container,Comparator>& priority_queue,
                                                      const split_options::type& split_option = split_options::compress_delimiters)
       {
-         return parse_n(begin,end,delimiters,n,priority_queue,split_option);
+         return parse_n(begin, end, delimiters, n, priority_queue, split_option);
       }
 
    } // namespace details
@@ -15153,10 +15446,10 @@ namespace strtk
          {
             if (std::numeric_limits<std::size_t>::max() == element_count_)
                return (details::parse_stl_container_proxy
-                         (begin,end,delimiters_,(*container_),split_option_) > 0);
+                         (begin, end, delimiters_, (*container_), split_option_) > 0);
             else
                return (details::parse_n_stl_container_proxy
-                         (begin,end,delimiters_,element_count_,(*container_),split_option_) == element_count_);
+                         (begin, end, delimiters_, element_count_, (*container_), split_option_) == element_count_);
          }
          else
             return false;
@@ -15255,16 +15548,24 @@ namespace strtk
       }
 
       inline std::string remaining_string(const std::size_t& index,
-                                          const std::string& str)
+                                          const std::string& str,
+                                          const bool return_empty = false)
       {
-         return (index < str.size()) ? str.substr(index,str.size() - index) : str;
+         if (index < str.size())
+            return str.substr(index,str.size() - index);
+         else
+            return (!return_empty) ? str : "";
       }
 
       inline void remaining_string(const std::size_t& index,
                                    const std::string& str,
-                                   std::string& result)
+                                   std::string& result,
+                                   const bool return_empty = false)
       {
-         result = (index < str.size()) ? str.substr(index,str.size() - index) : str;
+         if (index < str.size())
+            result =  str.substr(index,str.size() - index);
+         else
+            result = (!return_empty) ? str : "";
       }
 
       inline bool is_letter(const char c)
@@ -15337,7 +15638,7 @@ namespace strtk
       {
          if (index >= s.size())
             return;
-         std::memcpy(const_cast<char*>(s.data() + index), const_cast<char*>(s.data() + (index + 1)), s.size() - index);
+         std::memcpy(const_cast<char*>(to_ptr(s) + index), const_cast<char*>(to_ptr(s) + (index + 1)), s.size() - index);
          s.resize(s.size() - 1);
       }
 
@@ -15351,7 +15652,7 @@ namespace strtk
       inline void insert_inplace(std::string& s, const std::size_t& index, const char c)
       {
          s.resize(s.size() + 1);
-         std::memcpy(const_cast<char*>(s.data() + index + 1), const_cast<char*>(s.data() + (index)), s.size() - index);
+         std::memcpy(const_cast<char*>(to_ptr(s) + index + 1), const_cast<char*>(to_ptr(s) + (index)), s.size() - index);
          s[index] = c;
       }
 
@@ -15844,8 +16145,7 @@ namespace strtk
       return split_on_consecutive<OutputIterator>(n,
                                                   type,
                                                   mode,
-                                                  str.data(),
-                                                  str.data() + str.size(),
+                                                  to_ptr(str), to_ptr(str) + str.size(),
                                                   out);
    }
 
@@ -15897,8 +16197,7 @@ namespace strtk
                                                     m,
                                                     type,
                                                     mode,
-                                                    str.data(),
-                                                    str.data() + str.size(),
+                                                    to_ptr(str), to_ptr(str) + str.size(),
                                                     out);
    }
 
@@ -15946,8 +16245,7 @@ namespace strtk
       return split_on_consecutive<Predicate,
                                   OutputIterator>(n,
                                                   p,
-                                                  str.data(),
-                                                  str.data() + str.size(),
+                                                  to_ptr(str), to_ptr(str) + str.size(),
                                                   out,
                                                   stateful_predicate);
    }
@@ -15998,8 +16296,7 @@ namespace strtk
                                     OutputIterator>(n,
                                                     m,
                                                     p,
-                                                    str.data(),
-                                                    str.data() + str.size(),
+                                                    to_ptr(str), to_ptr(str) + str.size(),
                                                     out);
    }
 
@@ -16023,7 +16320,7 @@ namespace strtk
             if (static_cast<std::size_t>(std::distance(begin,end)) != s_.size())
                return false;
             else
-               return std::equal(s_.data(),s_.data() + s_.size(),begin);
+               return std::equal(to_ptr(s_), to_ptr(s_) + s_.size(), begin);
          }
 
          inline expect_impl& ref()
@@ -16055,7 +16352,7 @@ namespace strtk
             if (static_cast<std::size_t>(std::distance(begin,end)) != s_.size())
                return false;
             else
-               return std::equal(s_.data(),s_.data() + s_.size(),begin,imatch_char);
+               return std::equal(to_ptr(s_), to_ptr(s_) + s_.size(), begin, imatch_char);
          }
 
          inline iexpect_impl& ref()
@@ -16082,12 +16379,12 @@ namespace strtk
          {}
 
          template <typename InputIterator>
-         inline bool operator()(InputIterator begin, InputIterator end)
+         inline bool operator()(InputIterator begin, InputIterator end) const
          {
             typedef typename std::iterator_traits<InputIterator>::value_type value_type;
             static const value_type zero_or_more = value_type('*');
             static const value_type zero_or_one  = value_type('?');
-            return strtk::match(s_.data(),s_.data() + s_.size(),begin,end,zero_or_more,zero_or_one);
+            return strtk::match(to_ptr(s_), to_ptr(s_) + s_.size(), begin, end, zero_or_more, zero_or_one);
          }
 
          inline like_impl& ref()
@@ -16120,7 +16417,7 @@ namespace strtk
          inline bool operator()(InputIterator begin, InputIterator end)
          {
             T temp;
-            if (!strtk::string_to_type_converter(begin,end,temp))
+            if (!strtk::string_to_type_converter(begin, end, temp))
                return false;
             else if (temp < low_)
                return false;
@@ -16160,7 +16457,7 @@ namespace strtk
                                 Type& t)
             {
                std::string s;
-               if (!strtk::string_to_type_converter(begin,end,s))
+               if (!strtk::string_to_type_converter(begin, end, s))
                   return false;
                switch (mode)
                {
@@ -16183,7 +16480,7 @@ namespace strtk
                                 std::size_t mode,
                                 std::string& t)
             {
-               if (!strtk::string_to_type_converter(begin,end,t))
+               if (!strtk::string_to_type_converter(begin, end, t))
                   return false;
 
                switch (mode)
@@ -16215,7 +16512,7 @@ namespace strtk
          template <typename InputIterator>
          inline bool operator()(InputIterator begin, InputIterator end)
          {
-            return trim_details::convert_impl<T>::execute(begin,end,rem_chars_,mode_,(*t_));
+            return trim_details::convert_impl<T>::execute(begin, end, rem_chars_, mode_, (*t_));
          }
 
          inline trim_impl<T>& ref()
@@ -16420,12 +16717,12 @@ namespace strtk
 
    inline details::fill_array_impl fill_array(std::string& data, const std::size_t& size)
    {
-      return fill_array(const_cast<char*>(data.data()),size);
+      return fill_array(const_cast<char*>(to_ptr(data)),size);
    }
 
    inline details::fill_array_impl fill_array(std::string& data)
    {
-      return fill_array(const_cast<char*>(data.data()),data.size());
+      return fill_array(const_cast<char*>(to_ptr(data)),data.size());
    }
 
    namespace details
@@ -16710,7 +17007,7 @@ namespace strtk
       {
          static const unsigned int length       = 20;
          static const unsigned int size         = 24;
-         static const unsigned int bound_length = 19;
+         static const unsigned int bound_length = 20;
          static const unsigned long long m10    = 1844674407370955161;
          static const unsigned long long ldpos  = 5;
       };
@@ -16785,60 +17082,60 @@ namespace strtk
       template<> struct supported_conversion_to_type<strtk::details::conv_to_ucase_impl> { typedef ucase_type_tag type; };
       template<> struct supported_iterator_type<strtk::details::conv_to_ucase_impl>      { enum { value = true }; };
 
-      #define strtk_register_truncint_type_tag(T) \
-      template<> struct supported_conversion_to_type<strtk::truncated_int<T> > { typedef truncint_type_tag type; };\
-      template<> struct supported_iterator_type<strtk::truncated_int<T> >      { enum { value = true }; };
+      #define strtk_register_truncint_type_tag(T)                                                                   \
+      template<> struct supported_conversion_to_type<strtk::truncated_int<T> > { typedef truncint_type_tag type; }; \
+      template<> struct supported_iterator_type<strtk::truncated_int<T> >      { enum { value = true }; };          \
 
-      #define strtk_register_decsink_type_tag(T) \
-      template<> struct supported_conversion_to_type<strtk::decimal_sink<T> > { typedef decsink_type_tag type; };\
-      template<> struct supported_iterator_type<strtk::decimal_sink<T> >      { enum { value = true }; };
+      #define strtk_register_decsink_type_tag(T)                                                                  \
+      template<> struct supported_conversion_to_type<strtk::decimal_sink<T> > { typedef decsink_type_tag type; }; \
+      template<> struct supported_iterator_type<strtk::decimal_sink<T> >      { enum { value = true }; };         \
 
-      #define strtk_register_inrange_type_tag(T) \
-      template<> struct supported_conversion_to_type<strtk::details::inrange_impl<T> >   { typedef inrange_type_tag type; };\
-      template<> struct supported_iterator_type<strtk::details::inrange_impl<T> >        { enum { value = true }; };
+      #define strtk_register_inrange_type_tag(T)                                                                             \
+      template<> struct supported_conversion_to_type<strtk::details::inrange_impl<T> >   { typedef inrange_type_tag type; }; \
+      template<> struct supported_iterator_type<strtk::details::inrange_impl<T> >        { enum { value = true }; };         \
 
-      #define strtk_register_trim_type_tag(T) \
-      template<> struct supported_conversion_to_type<strtk::details::trim_impl<T> >   { typedef trim_type_tag type; };\
-      template<> struct supported_iterator_type<strtk::details::trim_impl<T> >        { enum { value = true }; };
+      #define strtk_register_trim_type_tag(T)                                                                          \
+      template<> struct supported_conversion_to_type<strtk::details::trim_impl<T> >   { typedef trim_type_tag type; }; \
+      template<> struct supported_iterator_type<strtk::details::trim_impl<T> >        { enum { value = true }; };      \
 
-      #define strtk_register_stdstring_range_type_tag(T) \
-      template<> struct supported_conversion_to_type< std::pair<T,T> >{ typedef stdstring_range_type_tag type; };
+      #define strtk_register_stdstring_range_type_tag(T)                                                          \
+      template<> struct supported_conversion_to_type< std::pair<T,T> >{ typedef stdstring_range_type_tag type; }; \
 
-      #define strtk_register_sink_type_tag(T)                                                                               \
-      template<> struct supported_conversion_to_type<sink_type<std::vector<T> > > { typedef sink_type_tag type; };          \
-      template<> struct supported_conversion_to_type<sink_type<std::deque<T> > > { typedef sink_type_tag type; };           \
-      template<> struct supported_conversion_to_type<sink_type<std::list<T> > > { typedef sink_type_tag type; };            \
-      template<> struct supported_conversion_to_type<sink_type<std::set<T> > > { typedef sink_type_tag type; };             \
-      template<> struct supported_conversion_to_type<sink_type<std::multiset<T> > > { typedef sink_type_tag type; };        \
-      template<> struct supported_conversion_to_type<sink_type<std::queue<T> > > { typedef sink_type_tag type; };           \
-      template<> struct supported_conversion_to_type<sink_type<std::stack<T> > > { typedef sink_type_tag type; };           \
-      template<> struct supported_conversion_to_type<sink_type<std::priority_queue<T> > > { typedef sink_type_tag type; };  \
-      template<> struct supported_conversion_from_type<sink_type<std::vector<T> > > { typedef sink_type_tag type; };        \
-      template<> struct supported_conversion_from_type<sink_type<std::deque<T> > > { typedef sink_type_tag type; };         \
-      template<> struct supported_conversion_from_type<sink_type<std::list<T> > > { typedef sink_type_tag type; };          \
-      template<> struct supported_conversion_from_type<sink_type<std::set<T> > > { typedef sink_type_tag type; };           \
-      template<> struct supported_conversion_from_type<sink_type<std::multiset<T> > > { typedef sink_type_tag type; };      \
-      template<> struct supported_conversion_from_type<sink_type<std::queue<T> > > { typedef sink_type_tag type; };         \
-      template<> struct supported_conversion_from_type<sink_type<std::stack<T> > > { typedef sink_type_tag type; };         \
-      template<> struct supported_conversion_from_type<sink_type<std::priority_queue<T> > > { typedef sink_type_tag type; };\
+      #define strtk_register_sink_type_tag(T)                                                                                \
+      template<> struct supported_conversion_to_type<sink_type<std::vector<T> > > { typedef sink_type_tag type; };           \
+      template<> struct supported_conversion_to_type<sink_type<std::deque<T> > > { typedef sink_type_tag type; };            \
+      template<> struct supported_conversion_to_type<sink_type<std::list<T> > > { typedef sink_type_tag type; };             \
+      template<> struct supported_conversion_to_type<sink_type<std::set<T> > > { typedef sink_type_tag type; };              \
+      template<> struct supported_conversion_to_type<sink_type<std::multiset<T> > > { typedef sink_type_tag type; };         \
+      template<> struct supported_conversion_to_type<sink_type<std::queue<T> > > { typedef sink_type_tag type; };            \
+      template<> struct supported_conversion_to_type<sink_type<std::stack<T> > > { typedef sink_type_tag type; };            \
+      template<> struct supported_conversion_to_type<sink_type<std::priority_queue<T> > > { typedef sink_type_tag type; };   \
+      template<> struct supported_conversion_from_type<sink_type<std::vector<T> > > { typedef sink_type_tag type; };         \
+      template<> struct supported_conversion_from_type<sink_type<std::deque<T> > > { typedef sink_type_tag type; };          \
+      template<> struct supported_conversion_from_type<sink_type<std::list<T> > > { typedef sink_type_tag type; };           \
+      template<> struct supported_conversion_from_type<sink_type<std::set<T> > > { typedef sink_type_tag type; };            \
+      template<> struct supported_conversion_from_type<sink_type<std::multiset<T> > > { typedef sink_type_tag type; };       \
+      template<> struct supported_conversion_from_type<sink_type<std::queue<T> > > { typedef sink_type_tag type; };          \
+      template<> struct supported_conversion_from_type<sink_type<std::stack<T> > > { typedef sink_type_tag type; };          \
+      template<> struct supported_conversion_from_type<sink_type<std::priority_queue<T> > > { typedef sink_type_tag type; }; \
 
-      #define strtk_register_stl_container_to_string_conv_type_tag(T)                                              \
-      template<> struct supported_conversion_from_type<std::vector<T> > { typedef stl_seq_type_tag type; };        \
-      template<> struct supported_conversion_from_type<std::deque<T> > { typedef stl_seq_type_tag type; };         \
-      template<> struct supported_conversion_from_type<std::list<T> > { typedef stl_seq_type_tag type; };          \
-      template<> struct supported_conversion_from_type<std::set<T> > { typedef stl_seq_type_tag type; };           \
-      template<> struct supported_conversion_from_type<std::multiset<T> > { typedef stl_seq_type_tag type; };      \
-      template<> struct supported_conversion_from_type<std::queue<T> > { typedef stl_seq_type_tag type; };         \
-      template<> struct supported_conversion_from_type<std::stack<T> > { typedef stl_seq_type_tag type; };         \
-      template<> struct supported_conversion_from_type<std::priority_queue<T> > { typedef stl_seq_type_tag type; };\
+      #define strtk_register_stl_container_to_string_conv_type_tag(T)                                               \
+      template<> struct supported_conversion_from_type<std::vector<T> > { typedef stl_seq_type_tag type; };         \
+      template<> struct supported_conversion_from_type<std::deque<T> > { typedef stl_seq_type_tag type; };          \
+      template<> struct supported_conversion_from_type<std::list<T> > { typedef stl_seq_type_tag type; };           \
+      template<> struct supported_conversion_from_type<std::set<T> > { typedef stl_seq_type_tag type; };            \
+      template<> struct supported_conversion_from_type<std::multiset<T> > { typedef stl_seq_type_tag type; };       \
+      template<> struct supported_conversion_from_type<std::queue<T> > { typedef stl_seq_type_tag type; };          \
+      template<> struct supported_conversion_from_type<std::stack<T> > { typedef stl_seq_type_tag type; };          \
+      template<> struct supported_conversion_from_type<std::priority_queue<T> > { typedef stl_seq_type_tag type; }; \
 
       template<> struct supported_conversion_to_type<ignore_token>{ typedef ignore_token_type_tag type; };
 
-      #define strtk_register_sequence_iterator_type(sequence)                        \
-      strtk_register_supported_iterator_type(sequence<char>::iterator)               \
-      strtk_register_supported_iterator_type(sequence<char>::const_iterator)         \
-      strtk_register_supported_iterator_type(sequence<unsigned char>::iterator)      \
-      strtk_register_supported_iterator_type(sequence<unsigned char>::const_iterator)\
+      #define strtk_register_sequence_iterator_type(sequence)                         \
+      strtk_register_supported_iterator_type(sequence<char>::iterator)                \
+      strtk_register_supported_iterator_type(sequence<char>::const_iterator)          \
+      strtk_register_supported_iterator_type(sequence<unsigned char>::iterator)       \
+      strtk_register_supported_iterator_type(sequence<unsigned char>::const_iterator) \
 
       strtk_register_unsigned_type_tag(unsigned short)
       strtk_register_unsigned_type_tag(unsigned int)
@@ -16893,7 +17190,9 @@ namespace strtk
       strtk_register_supported_iterator_type(std::string::iterator)
       strtk_register_supported_iterator_type(std::string::const_iterator)
 
+      #ifndef _LIBCPP_VERSION
       strtk_register_sequence_iterator_type(std::vector)
+      #endif
       strtk_register_sequence_iterator_type(std::deque)
 
       strtk_register_sink_type_tag(float)
@@ -17129,11 +17428,11 @@ namespace strtk
       }
 
       #ifdef __builtin_expect
-      # define strtk_likely(x)       __builtin_expect((x),1)
-      # define strtk_unlikely(x)     __builtin_expect((x),0)
+      # define strtk_likely(x)    __builtin_expect((x),1)
+      # define strtk_unlikely(x)  __builtin_expect((x),0)
       #else
-      # define strtk_likely(x)       (x)
-      # define strtk_unlikely(x)     (x)
+      # define strtk_likely(x)    (x)
+      # define strtk_unlikely(x)  (x)
       #endif
 
       template <typename Iterator, typename T>
@@ -17156,25 +17455,20 @@ namespace strtk
 
          switch (length)
          {
-            case 19 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case 18 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case 17 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case 16 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case 15 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case 14 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case 13 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case 12 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case 11 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case 10 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case  9 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case  8 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case  7 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case  6 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case  5 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case  4 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case  3 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case  2 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case  1 : if (strtk_unlikely((digit = (*itr - '0'))>= 10))                                          return false;
+            #define case_stmt(N)                                      \
+            case N : if (strtk_likely((digit = (*itr++ - '0')) < 10)) \
+                        t = t * 10 + static_cast<T>(digit);           \
+                     else                                             \
+                        return false;                                 \
+
+            case_stmt(20) case_stmt(19) case_stmt(18) case_stmt(17)
+            case_stmt(16) case_stmt(15) case_stmt(14) case_stmt(13)
+            case_stmt(12) case_stmt(11) case_stmt(10) case_stmt( 9)
+            case_stmt( 8) case_stmt( 7) case_stmt( 6) case_stmt( 5)
+            case_stmt( 4) case_stmt( 3) case_stmt( 2)
+            case  1 : if (strtk_unlikely((digit = (*itr - '0'))>= 10))
+                        return false;
+            #undef case_stmt
          }
 
          if (length == numeric<T>::bound_length)
@@ -17223,31 +17517,26 @@ namespace strtk
 
          switch (length)
          {
-            case 19 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case 18 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case 17 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case 16 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case 15 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case 14 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case 13 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case 12 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case 11 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case 10 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case  9 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case  8 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case  7 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case  6 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case  5 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case  4 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case  3 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case  2 : if (strtk_likely((digit = (*itr++ - '0')) < 10)) t = t * 10 + static_cast<T>(digit); else return false;
-            case  1 : if (strtk_unlikely((digit = (*itr - '0'))>= 10))                                          return false;
+            #define case_stmt(N)                                      \
+            case N : if (strtk_likely((digit = (*itr++ - '0')) < 10)) \
+                        t = t * 10 + static_cast<T>(digit);           \
+                     else                                             \
+                        return false;                                 \
+
+            case_stmt(19) case_stmt(18) case_stmt(17) case_stmt(16)
+            case_stmt(15) case_stmt(14) case_stmt(13) case_stmt(12)
+            case_stmt(11) case_stmt(10) case_stmt( 9) case_stmt( 8)
+            case_stmt( 7) case_stmt( 6) case_stmt( 5) case_stmt( 4)
+            case_stmt( 3) case_stmt( 2)
+            case  1 : if (strtk_unlikely((digit = (*itr - '0'))>= 10))
+                         return false;
+            #undef case_stmt
          }
 
          if (length == numeric<T>::bound_length)
          {
             if (!(
-                   (t < numeric<T>::m10) ||
+                   (t < static_cast<T>(numeric<T>::m10)) ||
                    (
                      (t == numeric<T>::m10) &&
                      (static_cast<T>(digit) <= last_digit)
@@ -17464,7 +17753,7 @@ namespace strtk
                if (curr != itr)
                {
                   instate = true;
-                  d += pow10(tmp_d,-std::distance(curr,itr));
+                  d += pow10(tmp_d,static_cast<int>(-std::distance(curr,itr)));
                }
 
                #undef parse_digit_1
@@ -18247,7 +18536,7 @@ namespace strtk
       inline bool load_file(const std::string& file_name, std::string& buffer)
       {
          buffer.resize(file_size(file_name));
-         return load_file(file_name,const_cast<char*>(buffer.data()),buffer.size());
+         return load_file(file_name,const_cast<char*>(to_ptr(buffer)),buffer.size());
       }
 
       inline bool write_file(const std::string& file_name, char* buffer, const std::size_t& buffer_size)
@@ -18261,7 +18550,7 @@ namespace strtk
 
       inline bool write_file(const std::string& file_name, const std::string& buffer)
       {
-         return write_file(file_name,const_cast<char*>(buffer.data()),buffer.size());
+         return write_file(file_name,const_cast<char*>(to_ptr(buffer)),buffer.size());
       }
 
       inline bool copy_file(const std::string& src_file_name, const std::string& dest_file_name)
@@ -18811,7 +19100,7 @@ namespace strtk
          buffer.resize(buffer_size);
          return read_at_offset(stream,
                                offset,
-                               const_cast<char*>(buffer.data()),
+                               const_cast<char*>(to_ptr(buffer)),
                                buffer_size);
       }
 
@@ -19008,7 +19297,7 @@ namespace strtk
    {
       T* begin = reinterpret_cast<T*>(data);
       T* end = begin + N;
-      std::copy(begin,end,&t[0]);
+      std::copy(begin, end, &t[0]);
       return data + (N * sizeof(T));
    }
 
@@ -19285,7 +19574,7 @@ namespace strtk
       {
          if (s.size() == static_cast<std::size_t>(std::distance(begin,end)))
          {
-            return std::equal(s_begin,s_end,begin);
+            return std::equal(s_begin, s_end, begin);
          }
          else
             return false;
@@ -19295,7 +19584,7 @@ namespace strtk
       {
          if (s.size() == static_cast<std::size_t>(std::distance(begin,end)))
          {
-            return !std::equal(s_begin,s_end,begin);
+            return !std::equal(s_begin, s_end, begin);
          }
          else
             return true;
@@ -19303,14 +19592,14 @@ namespace strtk
 
       inline bool condition_like(const itr_type begin, const itr_type end) const
       {
-         return match(s_begin,s_end,begin,end,(unsigned char)'*',(unsigned char)'?');
+         return match(s_begin, s_end, begin, end,(unsigned char)'*', (unsigned char)'?');
       }
 
       inline bool condition_begins_with(const itr_type begin, const itr_type end) const
       {
          if (s.size() == static_cast<std::size_t>(std::distance(begin,end)))
          {
-            return strtk::begins_with(s_begin,s_end,begin,end);
+            return strtk::begins_with(s_begin, s_end, begin, end);
          }
          else
             return false;
@@ -19320,7 +19609,7 @@ namespace strtk
       {
          if (s.size() == static_cast<std::size_t>(std::distance(begin,end)))
          {
-            return strtk::ends_with(s_begin,s_end,begin,end);
+            return strtk::ends_with(s_begin, s_end, begin, end);
          }
          else
             return false;
@@ -19330,7 +19619,7 @@ namespace strtk
       {
          if (s.size() <= static_cast<std::size_t>(std::distance(begin,end)))
          {
-            return (end != std::search(begin,end,s_begin,s_end));
+            return (end != std::search(begin, end, s_begin, s_end));
          }
          else
             return false;
@@ -19340,7 +19629,7 @@ namespace strtk
       {
          if (s.size() <= static_cast<std::size_t>(std::distance(begin,end)))
          {
-            return (end == std::search(begin,end,s_begin,s_end));
+            return (end == std::search(begin, end, s_begin, s_end));
          }
          else
             return true;
@@ -19364,8 +19653,8 @@ namespace strtk
       inline explicit string_condition(condition_type cond_type, const std::string& str)
       : cond_type_(cond_type),
         s(str),
-        s_begin(reinterpret_cast<const unsigned char*>(s.data())),
-        s_end(reinterpret_cast<const unsigned char*>(s.data() + str.size())),
+        s_begin(reinterpret_cast<const unsigned char*>(to_ptr(s))),
+        s_end  (reinterpret_cast<const unsigned char*>(to_ptr(s) + str.size())),
         condition_method_(0)
       {
          switch (cond_type_)
@@ -19395,8 +19684,11 @@ namespace strtk
 
       inline bool operator()(const std::string& str)
       {
-         return operator()(reinterpret_cast<const unsigned char*>(str.data()),
-                           reinterpret_cast<const unsigned char*>(str.data() + str.size()));
+         return operator()
+                (
+                  reinterpret_cast<const unsigned char*>(to_ptr(str)),
+                  reinterpret_cast<const unsigned char*>(to_ptr(str) + str.size())
+                );
       }
 
    private:
@@ -19447,7 +19739,8 @@ namespace strtk
                if (!node_list_.empty())
                {
                   node_list_iterator itr = node_list_.begin();
-                  node_list_iterator end = node_list_.end();
+                  node_list_iterator end = node_list_.end  ();
+
                   while (end != itr)
                   {
                      delete (*itr);
@@ -19460,8 +19753,10 @@ namespace strtk
             {
                if (node_list_.empty())
                   return 0;
+
                node_list_iterator itr = node_list_.begin();
                const node_list_iterator end = node_list_.end();
+
                while (end != itr)
                {
                   if (key_value == (*itr)->key_value_)
@@ -19469,6 +19764,7 @@ namespace strtk
                   else
                      ++itr;
                }
+
                return 0;
             }
 
@@ -19944,7 +20240,7 @@ namespace strtk
 
          inline void insert(const std::string& key)
          {
-            insert(reinterpret_cast<const unsigned char*>(key.data()),key.size());
+            insert(reinterpret_cast<const unsigned char*>(to_ptr(key)),key.size());
          }
 
          inline void insert(const char* data, const std::size_t& length)
@@ -19985,7 +20281,7 @@ namespace strtk
 
          inline bool contains(const std::string& key) const
          {
-            return contains(reinterpret_cast<const unsigned char*>(key.data()),key.size());
+            return contains(reinterpret_cast<const unsigned char*>(to_ptr(key)),key.size());
          }
 
          inline bool contains(const char* data, const std::size_t& length) const
@@ -20798,7 +21094,7 @@ namespace strtk
 
          inline bool operator()(const std::string& s) const
          {
-            return operator()(s.data(),s.data() + s.size());
+            return operator()(to_ptr(s), to_ptr(s) + s.size());
          }
 
          template <typename Function>
@@ -21033,7 +21329,7 @@ namespace strtk
 
          inline bool operator()(const std::string& s) const
          {
-            return operator()(s.data(),s.data() + s.size());
+            return operator()(to_ptr(s), to_ptr(s) + s.size());
          }
 
          template <typename T>
@@ -21376,11 +21672,11 @@ namespace strtk
                             const T& v5, const T&  v6, const T&  v7, const T& v8,
                             const T& v9, const T& v10, const T& v11)
       {
-         sequence.push_back(v1);  sequence.push_back(v2);
-         sequence.push_back(v3);  sequence.push_back(v4);
-         sequence.push_back(v5);  sequence.push_back(v6);
-         sequence.push_back(v7);  sequence.push_back(v8);
-         sequence.push_back(v9); sequence.push_back(v10);
+         sequence.push_back( v1); sequence.push_back( v2);
+         sequence.push_back( v3); sequence.push_back( v4);
+         sequence.push_back( v5); sequence.push_back( v6);
+         sequence.push_back( v7); sequence.push_back( v8);
+         sequence.push_back( v9); sequence.push_back(v10);
          sequence.push_back(v11);
       }
 
@@ -21392,10 +21688,10 @@ namespace strtk
                             const T& v5, const T& v6, const T& v7, const T& v8,
                             const T& v9, const T& v10)
       {
-         sequence.push_back(v1);  sequence.push_back(v2);
-         sequence.push_back(v3);  sequence.push_back(v4);
-         sequence.push_back(v5);  sequence.push_back(v6);
-         sequence.push_back(v7);  sequence.push_back(v8);
+         sequence.push_back(v1); sequence.push_back( v2);
+         sequence.push_back(v3); sequence.push_back( v4);
+         sequence.push_back(v5); sequence.push_back( v6);
+         sequence.push_back(v7); sequence.push_back( v8);
          sequence.push_back(v9); sequence.push_back(v10);
       }
 
@@ -21407,10 +21703,10 @@ namespace strtk
                             const T& v5, const T& v6, const T& v7, const T& v8,
                             const T& v9)
       {
-         sequence.push_back(v1);  sequence.push_back(v2);
-         sequence.push_back(v3);  sequence.push_back(v4);
-         sequence.push_back(v5);  sequence.push_back(v6);
-         sequence.push_back(v7);  sequence.push_back(v8);
+         sequence.push_back(v1); sequence.push_back(v2);
+         sequence.push_back(v3); sequence.push_back(v4);
+         sequence.push_back(v5); sequence.push_back(v6);
+         sequence.push_back(v7); sequence.push_back(v8);
          sequence.push_back(v9);
       }
 
@@ -21421,10 +21717,10 @@ namespace strtk
                             const T& v1, const T& v2, const T& v3, const T& v4,
                             const T& v5, const T& v6, const T& v7, const T& v8)
       {
-         sequence.push_back(v1);  sequence.push_back(v2);
-         sequence.push_back(v3);  sequence.push_back(v4);
-         sequence.push_back(v5);  sequence.push_back(v6);
-         sequence.push_back(v7);  sequence.push_back(v8);
+         sequence.push_back(v1); sequence.push_back(v2);
+         sequence.push_back(v3); sequence.push_back(v4);
+         sequence.push_back(v5); sequence.push_back(v6);
+         sequence.push_back(v7); sequence.push_back(v8);
       }
 
       template <typename T,
@@ -21434,9 +21730,9 @@ namespace strtk
                             const T& v1, const T& v2, const T& v3, const T& v4,
                             const T& v5, const T& v6, const T& v7)
       {
-         sequence.push_back(v1);  sequence.push_back(v2);
-         sequence.push_back(v3);  sequence.push_back(v4);
-         sequence.push_back(v5);  sequence.push_back(v6);
+         sequence.push_back(v1); sequence.push_back(v2);
+         sequence.push_back(v3); sequence.push_back(v4);
+         sequence.push_back(v5); sequence.push_back(v6);
          sequence.push_back(v7);
       }
 
@@ -21447,9 +21743,9 @@ namespace strtk
                             const T& v1, const T& v2, const T& v3, const T& v4,
                             const T& v5, const T& v6)
       {
-         sequence.push_back(v1);  sequence.push_back(v2);
-         sequence.push_back(v3);  sequence.push_back(v4);
-         sequence.push_back(v5);  sequence.push_back(v6);
+         sequence.push_back(v1); sequence.push_back(v2);
+         sequence.push_back(v3); sequence.push_back(v4);
+         sequence.push_back(v5); sequence.push_back(v6);
       }
 
       template <typename T,
@@ -21459,8 +21755,8 @@ namespace strtk
                             const T& v1, const T& v2, const T& v3, const T& v4,
                             const T& v5)
       {
-         sequence.push_back(v1);  sequence.push_back(v2);
-         sequence.push_back(v3);  sequence.push_back(v4);
+         sequence.push_back(v1); sequence.push_back(v2);
+         sequence.push_back(v3); sequence.push_back(v4);
          sequence.push_back(v5);
       }
 
@@ -21470,8 +21766,8 @@ namespace strtk
       inline void push_back(Sequence<T,Allocator>& sequence,
                             const T& v1, const T& v2, const T& v3, const T& v4)
       {
-         sequence.push_back(v1);  sequence.push_back(v2);
-         sequence.push_back(v3);  sequence.push_back(v4);
+         sequence.push_back(v1); sequence.push_back(v2);
+         sequence.push_back(v3); sequence.push_back(v4);
       }
 
       template <typename T,
@@ -21480,7 +21776,7 @@ namespace strtk
       inline void push_back(Sequence<T,Allocator>& sequence,
                             const T& v1, const T& v2, const T& v3)
       {
-         sequence.push_back(v1);  sequence.push_back(v2);
+         sequence.push_back(v1); sequence.push_back(v2);
          sequence.push_back(v3);
       }
 
@@ -21490,7 +21786,7 @@ namespace strtk
       inline void push_back(Sequence<T,Allocator>& sequence,
                             const T& v1, const T& v2)
       {
-         sequence.push_back(v1);  sequence.push_back(v2);
+         sequence.push_back(v1); sequence.push_back(v2);
       }
 
       template <typename T,
@@ -21508,10 +21804,10 @@ namespace strtk
                             const T& v5, const T& v6, const T& v7, const T& v8,
                             const T& v9, const T& v10)
       {
-         set.insert(v1);  set.insert(v2);
-         set.insert(v3);  set.insert(v4);
-         set.insert(v5);  set.insert(v6);
-         set.insert(v7);  set.insert(v8);
+         set.insert(v1); set.insert( v2);
+         set.insert(v3); set.insert( v4);
+         set.insert(v5); set.insert( v6);
+         set.insert(v7); set.insert( v8);
          set.insert(v9); set.insert(v10);
       }
 
@@ -21521,10 +21817,10 @@ namespace strtk
                             const T& v5, const T& v6, const T& v7, const T& v8,
                             const T& v9)
       {
-         set.insert(v1);  set.insert(v2);
-         set.insert(v3);  set.insert(v4);
-         set.insert(v5);  set.insert(v6);
-         set.insert(v7);  set.insert(v8);
+         set.insert(v1); set.insert(v2);
+         set.insert(v3); set.insert(v4);
+         set.insert(v5); set.insert(v6);
+         set.insert(v7); set.insert(v8);
          set.insert(v9);
       }
 
@@ -21533,10 +21829,10 @@ namespace strtk
                             const T& v1, const T& v2, const T& v3, const T& v4,
                             const T& v5, const T& v6, const T& v7, const T& v8)
       {
-         set.insert(v1);  set.insert(v2);
-         set.insert(v3);  set.insert(v4);
-         set.insert(v5);  set.insert(v6);
-         set.insert(v7);  set.insert(v8);
+         set.insert(v1); set.insert(v2);
+         set.insert(v3); set.insert(v4);
+         set.insert(v5); set.insert(v6);
+         set.insert(v7); set.insert(v8);
       }
 
       template <typename T, typename Comparator, typename Allocator>
@@ -21544,9 +21840,9 @@ namespace strtk
                             const T& v1, const T& v2, const T& v3, const T& v4,
                             const T& v5, const T& v6, const T& v7)
       {
-         set.insert(v1);  set.insert(v2);
-         set.insert(v3);  set.insert(v4);
-         set.insert(v5);  set.insert(v6);
+         set.insert(v1); set.insert(v2);
+         set.insert(v3); set.insert(v4);
+         set.insert(v5); set.insert(v6);
          set.insert(v7);
       }
 
@@ -21555,9 +21851,9 @@ namespace strtk
                             const T& v1, const T& v2, const T& v3, const T& v4,
                             const T& v5, const T& v6)
       {
-         set.insert(v1);  set.insert(v2);
-         set.insert(v3);  set.insert(v4);
-         set.insert(v5);  set.insert(v6);
+         set.insert(v1); set.insert(v2);
+         set.insert(v3); set.insert(v4);
+         set.insert(v5); set.insert(v6);
       }
 
       template <typename T, typename Comparator, typename Allocator>
@@ -21565,8 +21861,8 @@ namespace strtk
                             const T& v1, const T& v2, const T& v3, const T& v4,
                             const T& v5)
       {
-         set.insert(v1);  set.insert(v2);
-         set.insert(v3);  set.insert(v4);
+         set.insert(v1); set.insert(v2);
+         set.insert(v3); set.insert(v4);
          set.insert(v5);
       }
 
@@ -21574,15 +21870,15 @@ namespace strtk
       inline void push_back(std::set<T,Comparator,Allocator>& set,
                             const T& v1, const T& v2, const T& v3, const T& v4)
       {
-         set.insert(v1);  set.insert(v2);
-         set.insert(v3);  set.insert(v4);
+         set.insert(v1); set.insert(v2);
+         set.insert(v3); set.insert(v4);
       }
 
       template <typename T, typename Comparator, typename Allocator>
       inline void push_back(std::set<T,Comparator,Allocator>& set,
                             const T& v1, const T& v2, const T& v3)
       {
-         set.insert(v1);  set.insert(v2);
+         set.insert(v1); set.insert(v2);
          set.insert(v3);
       }
 
@@ -21590,7 +21886,7 @@ namespace strtk
       inline void push_back(std::set<T,Comparator,Allocator>& set,
                             const T& v1, const T& v2)
       {
-         set.insert(v1);  set.insert(v2);
+         set.insert(v1); set.insert(v2);
       }
 
       template <typename T, typename Comparator, typename Allocator>
@@ -21606,10 +21902,10 @@ namespace strtk
                             const T& v5, const T& v6, const T& v7, const T& v8,
                             const T& v9, const T& v10)
       {
-         set.insert(v1);  set.insert(v2);
-         set.insert(v3);  set.insert(v4);
-         set.insert(v5);  set.insert(v6);
-         set.insert(v7);  set.insert(v8);
+         set.insert(v1); set.insert( v2);
+         set.insert(v3); set.insert( v4);
+         set.insert(v5); set.insert( v6);
+         set.insert(v7); set.insert( v8);
          set.insert(v9); set.insert(v10);
       }
 
@@ -21619,10 +21915,10 @@ namespace strtk
                             const T& v5, const T& v6, const T& v7, const T& v8,
                             const T& v9)
       {
-         set.insert(v1);  set.insert(v2);
-         set.insert(v3);  set.insert(v4);
-         set.insert(v5);  set.insert(v6);
-         set.insert(v7);  set.insert(v8);
+         set.insert(v1); set.insert(v2);
+         set.insert(v3); set.insert(v4);
+         set.insert(v5); set.insert(v6);
+         set.insert(v7); set.insert(v8);
          set.insert(v9);
       }
 
@@ -21631,10 +21927,10 @@ namespace strtk
                             const T& v1, const T& v2, const T& v3, const T& v4,
                             const T& v5, const T& v6, const T& v7, const T& v8)
       {
-         set.insert(v1);  set.insert(v2);
-         set.insert(v3);  set.insert(v4);
-         set.insert(v5);  set.insert(v6);
-         set.insert(v7);  set.insert(v8);
+         set.insert(v1); set.insert(v2);
+         set.insert(v3); set.insert(v4);
+         set.insert(v5); set.insert(v6);
+         set.insert(v7); set.insert(v8);
       }
 
       template <typename T, typename Comparator, typename Allocator>
@@ -21642,9 +21938,9 @@ namespace strtk
                             const T& v1, const T& v2, const T& v3, const T& v4,
                             const T& v5, const T& v6, const T& v7)
       {
-         set.insert(v1);  set.insert(v2);
-         set.insert(v3);  set.insert(v4);
-         set.insert(v5);  set.insert(v6);
+         set.insert(v1); set.insert(v2);
+         set.insert(v3); set.insert(v4);
+         set.insert(v5); set.insert(v6);
          set.insert(v7);
       }
 
@@ -21653,9 +21949,9 @@ namespace strtk
                             const T& v1, const T& v2, const T& v3, const T& v4,
                             const T& v5, const T& v6)
       {
-         set.insert(v1);  set.insert(v2);
-         set.insert(v3);  set.insert(v4);
-         set.insert(v5);  set.insert(v6);
+         set.insert(v1); set.insert(v2);
+         set.insert(v3); set.insert(v4);
+         set.insert(v5); set.insert(v6);
       }
 
       template <typename T, typename Comparator, typename Allocator>
@@ -21663,8 +21959,8 @@ namespace strtk
                             const T& v1, const T& v2, const T& v3, const T& v4,
                             const T& v5)
       {
-         set.insert(v1);  set.insert(v2);
-         set.insert(v3);  set.insert(v4);
+         set.insert(v1); set.insert(v2);
+         set.insert(v3); set.insert(v4);
          set.insert(v5);
       }
 
@@ -21672,15 +21968,15 @@ namespace strtk
       inline void push_back(std::multiset<T,Comparator,Allocator>& set,
                             const T& v1, const T& v2, const T& v3, const T& v4)
       {
-         set.insert(v1);  set.insert(v2);
-         set.insert(v3);  set.insert(v4);
+         set.insert(v1); set.insert(v2);
+         set.insert(v3); set.insert(v4);
       }
 
       template <typename T, typename Comparator, typename Allocator>
       inline void push_back(std::multiset<T,Comparator,Allocator>& set,
                             const T& v1, const T& v2, const T& v3)
       {
-         set.insert(v1);  set.insert(v2);
+         set.insert(v1); set.insert(v2);
          set.insert(v3);
       }
 
@@ -21688,7 +21984,7 @@ namespace strtk
       inline void push_back(std::multiset<T,Comparator,Allocator>& set,
                             const T& v1, const T& v2)
       {
-         set.insert(v1);  set.insert(v2);
+         set.insert(v1); set.insert(v2);
       }
 
       template <typename T, typename Comparator, typename Allocator>
@@ -22375,9 +22671,8 @@ namespace strtk
                       T6& t6, T7& t7, T8& t8, T9& t9, T10& t10)
    {
       return
-         details::column_selector_impl
-            <T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>
-               (col_list,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10);
+         details::column_selector_impl<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>
+            (col_list,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10);
    }
 
    template <typename T0, typename T1, typename T2, typename T3,
@@ -22389,9 +22684,8 @@ namespace strtk
                       T6& t6, T7& t7, T8& t8, T9& t9)
    {
       return
-         details::column_selector_impl
-            <T0,T1,T2,T3,T4,T5,T6,T7,T8,T9>
-               (col_list,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9);
+         details::column_selector_impl<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9>
+            (col_list,t0,t1,t2,t3,t4,t5,t6,t7,t8,t9);
    }
 
    template <typename T0, typename T1, typename T2, typename T3,
@@ -22403,9 +22697,8 @@ namespace strtk
                       T6& t6, T7& t7, T8& t8)
    {
       return
-         details::column_selector_impl
-            <T0,T1,T2,T3,T4,T5,T6,T7,T8>
-               (col_list,t0,t1,t2,t3,t4,t5,t6,t7,t8);
+         details::column_selector_impl<T0,T1,T2,T3,T4,T5,T6,T7,T8>
+            (col_list,t0,t1,t2,t3,t4,t5,t6,t7,t8);
    }
 
    template <typename T0, typename T1, typename T2, typename T3,
@@ -22416,9 +22709,8 @@ namespace strtk
                       T6& t6, T7& t7)
    {
       return
-         details::column_selector_impl
-            <T0,T1,T2,T3,T4,T5,T6,T7>
-               (col_list,t0,t1,t2,t3,t4,t5,t6,t7);
+         details::column_selector_impl<T0,T1,T2,T3,T4,T5,T6,T7>
+            (col_list,t0,t1,t2,t3,t4,t5,t6,t7);
    }
 
    template <typename T0, typename T1, typename T2, typename T3,
@@ -22428,9 +22720,8 @@ namespace strtk
                       T0& t0, T1& t1, T2& t2, T3& t3, T4& t4, T5& t5, T6& t6)
    {
       return
-         details::column_selector_impl
-            <T0,T1,T2,T3,T4,T5,T6>
-               (col_list,t0,t1,t2,t3,t4,t5,t6);
+         details::column_selector_impl<T0,T1,T2,T3,T4,T5,T6>
+            (col_list,t0,t1,t2,t3,t4,t5,t6);
    }
 
    template <typename T0, typename T1, typename T2, typename T3,
@@ -22440,9 +22731,8 @@ namespace strtk
                       T0& t0, T1& t1, T2& t2, T3& t3, T4& t4, T5& t5)
    {
       return
-         details::column_selector_impl
-            <T0,T1,T2,T3,T4,T5>
-               (col_list,t0,t1,t2,t3,t4,t5);
+         details::column_selector_impl<T0,T1,T2,T3,T4,T5>
+            (col_list,t0,t1,t2,t3,t4,t5);
    }
 
    template <typename T0, typename T1, typename T2,
@@ -22452,9 +22742,8 @@ namespace strtk
                       T0& t0, T1& t1, T2& t2, T3& t3, T4& t4)
    {
       return
-         details::column_selector_impl
-            <T0,T1,T2,T3,T4>
-               (col_list,t0,t1,t2,t3,t4);
+         details::column_selector_impl<T0,T1,T2,T3,T4>
+            (col_list,t0,t1,t2,t3,t4);
    }
 
    template <typename T0, typename T1, typename T2, typename T3>
@@ -22463,9 +22752,8 @@ namespace strtk
                       T0& t0, T1& t1, T2& t2, T3& t3)
    {
       return
-         details::column_selector_impl
-            <T0,T1,T2,T3>
-               (col_list,t0,t1,t2,t3);
+         details::column_selector_impl<T0,T1,T2,T3>
+            (col_list,t0,t1,t2,t3);
    }
 
    template <typename T0, typename T1, typename T2>
@@ -22474,9 +22762,8 @@ namespace strtk
                       T0& t0, T1& t1, T2& t2)
    {
       return
-         details::column_selector_impl
-            <T0,T1,T2>
-               (col_list,t0,t1,t2);
+         details::column_selector_impl<T0,T1,T2>
+            (col_list,t0,t1,t2);
    }
 
    template <typename T0, typename T1>
@@ -22485,9 +22772,8 @@ namespace strtk
                       T0& t0, T1& t1)
    {
       return
-         details::column_selector_impl
-            <T0,T1>
-               (col_list,t0,t1);
+         details::column_selector_impl<T0,T1>
+            (col_list,t0,t1);
    }
 
    template <typename T0>
@@ -22495,9 +22781,8 @@ namespace strtk
       column_selector(const details::column_list_impl<1>& col_list, T0& t0)
    {
       return
-         details::column_selector_impl
-            <T0>
-               (col_list,t0);
+         details::column_selector_impl<T0>
+            (col_list,t0);
    }
 
    namespace details
@@ -22827,7 +23112,7 @@ namespace strtk
       if (token_count > parsed_token_count) return false;                        \
 
    #define strk_parse_col_seq \
-      return parse_columns(data.data(),data.data() + data.size(),delimiters,column_list,seq);
+      return parse_columns(to_ptr(data), to_ptr(data) + data.size(), delimiters, column_list, seq);
 
    template <typename InputIterator,
              typename  T0, typename T1, typename T2, typename T3, typename T4,
@@ -23242,10 +23527,10 @@ namespace strtk
    #undef strtk_parse_col_token_seq
    #undef strtk_parse_columns_impl
 
-   #define strtk_parse_col_begin()                              \
-      return parse_columns(data.data(),                         \
-                           data.data() + data.size(),delimiters,\
-                           column_list,                         \
+   #define strtk_parse_col_begin()                                   \
+      return parse_columns(to_ptr(data), to_ptr(data) + data.size(), \
+                           delimiters,                               \
+                           column_list,                              \
 
    #define strtk_parse_col_end() );
 
@@ -23622,8 +23907,8 @@ namespace strtk
    inline std::pair<Iterator1,Iterator2> make_pair(const std::string& s)
    {
       return std::make_pair<Iterator1,Iterator2>(
-             reinterpret_cast<Iterator1>(const_cast<char*>(s.data())),
-             reinterpret_cast<Iterator2>(const_cast<char*>(s.data() + s.size())));
+             reinterpret_cast<Iterator1>(const_cast<char*>(to_ptr(s))),
+             reinterpret_cast<Iterator2>(const_cast<char*>(to_ptr(s) + s.size())));
    }
 
    template <typename Iterator1, typename Iterator2>
@@ -23697,7 +23982,7 @@ namespace strtk
    {
       if (N < s.size())
          return false;
-      std::copy(s.data(),s.data() + s.size(), &a[0]);
+      std::copy(to_ptr(s), to_ptr(s) + s.size(), &a[0]);
       if ((s.size() < N) && pad)
          std::fill_n(&a[s.size()],N - s.size(),padding);
       return true;
@@ -23747,7 +24032,7 @@ namespace strtk
 
    inline void fill(std::string& s, const std::string::value_type v)
    {
-      std::fill(const_cast<char*>(s.data()),const_cast<char*>(s.data() + s.size()), v);
+      std::fill(const_cast<char*>(to_ptr(s)),const_cast<char*>(to_ptr(s) + s.size()), v);
    }
 
    inline void fill(const std::pair<const char*,const char*>& range, char v)
@@ -24272,8 +24557,9 @@ namespace strtk
    namespace information
    {
       static const char* library = "String Toolkit";
-      static const char* version = "2.718281828459045235360287471352662497757247093699959574966";
-      static const char* date    = "20140810";
+      static const char* version = "2.7182818284590452353602874713526"
+                                   "624977572470936999595749669676277";
+      static const char* date    = "20170101";
 
       static inline std::string data()
       {
